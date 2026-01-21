@@ -1,0 +1,43 @@
+version: '3.8'
+
+services:
+    # Layanan untuk Backend (PHP + Apache)
+    backend:
+        build:
+            context: .
+            dockerfile: backend/Dockerfile
+        ports:
+            - '80:80' # Mengakses aplikasi PHP di port 80
+        volumes:
+            - ./backend:/var/www/html
+        environment:
+            - MYSQL_HOST=db # Menunjukkan bahwa database berada di service "db"
+        depends_on:
+            - db # Backend bergantung pada database
+
+    # Layanan untuk Frontend (Tailwind CSS + Node.js)
+    frontend:
+        build:
+            context: .
+            dockerfile: frontend/Dockerfile
+        ports:
+            - '3000:3000' # Mengakses aplikasi frontend di port 3000
+        volumes:
+            - ./frontend:/app
+        depends_on:
+            - backend # Frontend bergantung pada backend
+
+    # Layanan untuk Database MySQL
+    db:
+        image: mysql:8.0
+        environment:
+            MYSQL_ROOT_PASSWORD: rootpassword
+            MYSQL_DATABASE: sistem_poin_pelanggaran
+        volumes:
+            - db-data:/var/lib/mysql
+        ports:
+            - '3306:3306' # Mengakses MySQL di port 3306
+
+volumes:
+    db-data:
+        driver: local
