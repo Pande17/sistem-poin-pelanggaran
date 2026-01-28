@@ -1,25 +1,23 @@
-# Frontend Dockerfile (frontend/Dockerfile)
-
-# Gunakan image Node.js sebagai base
+# Frontend Dockerfile
 FROM node:16
 
-# Set working directory di dalam container
+# Set working directory
 WORKDIR /app
 
-# Copy package.json dan package-lock.json untuk instalasi dependensi
-COPY ../package*.json ./
+# Salin package.json dan package-lock.json
+COPY ./frontend/package.json ./frontend/package-lock.json ./
 
-# Install dependensi frontend (Tailwind CSS dan lainnya)
+# Install dependencies
 RUN npm install
 
-# Copy seluruh file frontend ke dalam container
+# Salin semua file frontend ke dalam container
 COPY . /app
 
-# Build Tailwind CSS
+# Jalankan build Tailwind CSS
 RUN npm run build
 
-# Expose port untuk server frontend (misalnya port 3000)
+# Expose port untuk server frontend (jika ada)
 EXPOSE 3000
 
-# Jalankan server frontend
+# Jalankan server (misalnya, menggunakan Live Server atau server lain)
 CMD ["npm", "start"]
