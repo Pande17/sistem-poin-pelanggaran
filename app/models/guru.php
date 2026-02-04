@@ -31,17 +31,19 @@ class GuruModel {
         return $stmt->execute();
     }
 
-    public function updateGuru($id, $nama, $alamat, $email) {
-        $stmt = $this->db->prepare("UPDATE guru SET nama = :nama, alamat = :alamat, email = :email WHERE id = :id");
+    public function updateGuru($id, $nama, $kodeGuru, $email, $jenisKelamin, $role) {
+        $stmt = $this->db->prepare("UPDATE guru SET nama = :nama, kode_guru = :kode_guru, email = :email, jenis_kelamin = :jenis_kelamin, role = :role WHERE id = :id");
         $stmt->bindParam(':id', $id);
         $stmt->bindParam(':nama', $nama);
-        $stmt->bindParam(':alamat', $alamat);
+        $stmt->bindParam(':kode_guru', $kodeGuru);
         $stmt->bindParam(':email', $email);
+        $stmt->bindParam(':jenis_kelamin', $jenisKelamin);
+        $stmt->bindParam(':role', $role);
         return $stmt->execute();
     }
 
     public function deleteGuru($id) {
-        $stmt = $this->db->prepare("DELETE FROM guru WHERE id = :id");
+        $stmt = $this->db->prepare("UPDATE guru SET deleted_at = NOW() WHERE id = :id");
         $stmt->bindParam(':id', $id);
         return $stmt->execute();
     }

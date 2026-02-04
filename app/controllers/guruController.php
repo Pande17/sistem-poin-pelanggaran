@@ -1,5 +1,6 @@
 <?php
 require_once '../models/guru.php';
+require_once '../helpers/responseHelper.php';
 
 class GuruController {
 
@@ -14,10 +15,10 @@ class GuruController {
             $id = isset($_GET['id']) ? $_GET['id'] : null;
             if ($id) {
                 $guru = $this->model->getGuruById($id);
-                echo json_encode($guru);
+                Success($guru, "Data guru dengan ID $id berhasil diambil");
             } else {
                 $guru = $this->model->getAllGuru();
-                echo json_encode($guru);
+                Success($guru, "Data guru berhasil diambil");
             }
         }
     }
@@ -33,9 +34,9 @@ class GuruController {
 
             $result = $this->model->addGuru($nama, $kodeGuru, $email, $jenisKelamin, $role);
             if ($result) {
-                echo json_encode(['message' => 'Guru added successfully']);
+                Created($data, 'Data Guru berhasil ditambahkan');
             } else {
-                echo json_encode(['message' => 'Failed to add guru']);
+                Conflict(null, 'Gagal menambahkan data Guru! Coba lagi.');
             }
         }
     }
@@ -45,14 +46,16 @@ class GuruController {
             $data = json_decode(file_get_contents("php://input"), true);
             $id = isset($data['id']) ? $data['id'] : (isset($_GET['id']) ? $_GET['id'] : null);
             $nama = $data['nama'];
-            $alamat = $data['alamat'];
+            $kodeGuru = $data['kode_guru'];
             $email = $data['email'];
+            $jenisKelamin = $data['jenis_kelamin'];
+            $role = $data['role'];
 
-            $result = $this->model->updateGuru($id, $nama, $alamat, $email);
+            $result = $this->model->updateGuru($id, $nama, $kodeGuru, $email, $jenisKelamin, $role);
             if ($result) {
-                echo json_encode(['message' => 'Guru updated successfully']);
+                Success($data, 'Data Guru berhasil diupdate');
             } else {
-                echo json_encode(['message' => 'Failed to update guru']);
+                Conflict(null, 'Gagal mengupdate data Guru! Coba lagi.');
             }
         }
     }
@@ -64,9 +67,9 @@ class GuruController {
 
             $result = $this->model->deleteGuru($id);
             if ($result) {
-                echo json_encode(['message' => 'Guru deleted successfully']);
+                Success(null, 'Data Guru berhasil dihapus');
             } else {
-                echo json_encode(['message' => 'Failed to delete guru']);
+                Conflict(null, 'Gagal menghapus data Guru! Coba lagi.');
             }
         }
     }
