@@ -1,12 +1,12 @@
 <?php
 require_once '../controllers/guruController.php';
-// require_once '../controllers/siswaController.php';
+require_once '../controllers/siswaController.php';
 // require_once '../controllers/pelanggaranController.php';
 // require_once '../controllers/suratController.php';
 // require_once '../helpers/responseHelper.php';
 
 $guruController = new GuruController();
-// $siswaController = new SiswaController();
+$siswaController = new SiswaController();
 // $pelanggaranController = new PelanggaranController();
 // $suratController = new SuratController();
 
