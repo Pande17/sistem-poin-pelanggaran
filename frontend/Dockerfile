@@ -1,23 +1,19 @@
-# Frontend Dockerfile
-FROM node:16
+FROM node:20-alpine
 
 # Set working directory
 WORKDIR /app
 
-# Salin package.json dan package-lock.json
-COPY ./frontend/package.json ./frontend/package-lock.json ./
+# Copy package.json & lock file
+COPY package*.json ./
 
 # Install dependencies
 RUN npm install
 
-# Salin semua file frontend ke dalam container
-COPY . /app
+# Copy semua file frontend
+COPY . .
 
-# Jalankan build Tailwind CSS
-RUN npm run build
+# Expose port Vite
+EXPOSE 5173
 
-# Expose port untuk server frontend (jika ada)
-EXPOSE 3000
-
-# Jalankan server (misalnya, menggunakan Live Server atau server lain)
-CMD ["npm", "start"]
+# Jalankan Vite dev server
+CMD ["npm", "run", "dev", "--", "--host"]

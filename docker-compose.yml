@@ -1,44 +1,55 @@
-version: '3.8'
-
 services:
-    # Backend service
-    backend:
-        build:
-            context: .
-            dockerfile: ./backend/Dockerfile
+    app:
+        build: ./backend
+        platform: linux/amd64
+        container_name: php-backend
+        working_dir: /var/www/html
         volumes:
             - ./backend:/var/www/html
         ports:
-            - '8080:80'
-        networks:
-            - app-network
+            - '8000:8000'
+        depends_on:
+            - db
 
-    # Frontend service
     frontend:
-        build:
-            context: .
-            dockerfile: ./frontend/Dockerfile
+        build: ./frontend
+        platform: linux/amd64
+        container_name: react-frontend
+        working_dir: /app
         volumes:
             - ./frontend:/app
+            - /app/node_modules
         ports:
-            - '3000:3000'
-        networks:
-            - app-network
-
-    # Database service (MySQL, jika dibutuhkan)
-    db:
-        image: mysql:5.7
+            - '5173:5173'
         environment:
-            MYSQL_ROOT_PASSWORD:
-            MYSQL_DATABASE: sistem-poin-pelanggaran
+            - CHOKIDAR_USEPOLLING=true
+        command: npm run dev -- --host
+    db:
+        image: mysql:8.0
+        platform: linux/amd64
+        container_name: mysql_db
+        restart: always
+        environment:
+            MYSQL_ROOT_PASSWORD: root
+            MYSQL_DATABASE: poin_pelanggaran_siswa
+        ports:
+            - '3306:3306'
         volumes:
             - db_data:/var/lib/mysql
-        networks:
-            - app-network
 
-networks:
-    app-network:
-        driver: bridge
+    phpmyadmin:
+        image: phpmyadmin/phpmyadmin
+        platform: linux/amd64
+        container_name: phpmyadmin
+        restart: always
+        ports:
+            - '8080:80'
+        environment:
+            PMA_HOST: db
+            PMA_USER: root
+            PMA_PASSWORD: root
+        depends_on:
+            - db
 
 volumes:
     db_data:
