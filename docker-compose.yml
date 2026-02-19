@@ -6,6 +6,7 @@ services:
         working_dir: /var/www/html
         volumes:
             - ./backend:/var/www/html
+            - ./backend/000-default.conf:/etc/apache2/sites-available/000-default.conf
         ports:
             - '8000:8000'
         depends_on:

@@ -2,6 +2,7 @@
 
 function sendResponse($statusCode, $message = null, $data = null, $errLocate = null) {
     http_response_code($statusCode);
+    header('Content-Type: application/json');
     echo json_encode([
         'status' => $statusCode,
         'message' => $message,

@@ -1,19 +1,19 @@
 <?php
+require_once '../middleware/cors.php';
+require_once '../helpers/responseHelper.php';
+require_once '../controllers/authController.php';
 require_once '../controllers/guruController.php';
 require_once '../controllers/siswaController.php';
 // require_once '../controllers/pelanggaranController.php';
 // require_once '../controllers/suratController.php';
-// require_once '../helpers/responseHelper.php';
 
+Cors::handle();
+
+$authController = new authController();
 $guruController = new GuruController();
 $siswaController = new SiswaController();
 // $pelanggaranController = new PelanggaranController();
 // $suratController = new SuratController();
-
-// CORS headers
-header('Access-Control-Allow-Origin: *');
-header('Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS');
-header('Access-Control-Allow-Headers: Content-Type, Authorization');
 
 // Handle preflight request
 if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
@@ -43,6 +43,15 @@ if (is_numeric($endpoint) && isset($segments[count($segments) - 2]) && $segments
 
 // Route handling
 switch ($endpoint) {
+    case 'login':
+        if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+            $authController->login();
+        } else {
+            // Method Not Allowed
+            BadRequest(null, 'Method Not Allowed');
+        }
+        break;
+
     case 'guru':
         switch ($_SERVER['REQUEST_METHOD']) {
             case 'GET':
