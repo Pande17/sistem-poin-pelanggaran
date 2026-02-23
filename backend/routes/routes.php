@@ -1,11 +1,11 @@
 <?php
-require_once '../middleware/cors.php';
-require_once '../helpers/responseHelper.php';
-require_once '../controllers/authController.php';
-require_once '../controllers/guruController.php';
-require_once '../controllers/siswaController.php';
-// require_once '../controllers/pelanggaranController.php';
-// require_once '../controllers/suratController.php';
+require_once 'middleware/cors.php';
+require_once 'helpers/responseHelper.php';
+require_once 'controllers/authController.php';
+require_once 'controllers/guruController.php';
+require_once 'controllers/siswaController.php';
+// require_once 'controllers/pelanggaranController.php';
+// require_once 'controllers/suratController.php';
 
 Cors::handle();
 

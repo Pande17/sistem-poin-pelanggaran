@@ -1,6 +1,6 @@
 <?php
-require_once '../models/guru.php';
-require_once '../helpers/responseHelper.php';
+require_once 'models/guru.php';
+require_once 'helpers/responseHelper.php';
 
 class GuruController {
     private $model;

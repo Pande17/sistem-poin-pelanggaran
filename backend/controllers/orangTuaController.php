@@ -1,6 +1,6 @@
 <?php
-require_once '../models/orangTua.php';
-require_once '../helpers/responseHelper.php';
+require_once 'models/orangTua.php';
+require_once 'helpers/responseHelper.php';
 
 class OrangTuaController {
     private $model;

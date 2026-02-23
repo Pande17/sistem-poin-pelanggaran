@@ -1,6 +1,6 @@
 <?php
-require_once '/../helpers/responHelper.php';
-require_once '/../helpers/token.php';
+require_once 'helpers/responseHelper.php';
+require_once 'helpers/token.php';
 
 class authController {
     public static function login() {

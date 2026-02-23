@@ -1,6 +1,6 @@
 <?php
-require_once '../models/siswa.php';
-require_once '../helpers/responseHelper.php';
+require_once 'models/siswa.php';
+require_once 'helpers/responseHelper.php';
 require_once 'orangTuaController.php';
 
 class SiswaController {
@@ -44,12 +44,12 @@ class SiswaController {
             $email = $data['email'];
             $role = $data['role'];
 
-            $result = $this->model->addSiswa($nama, $kodeGuru, $email, $jenisKelamin, $role);
-            if ($result) {
-                Created($data, 'Data Siswa berhasil ditambahkan');
-            } else {
-                Conflict(null, 'Gagal menambahkan data Siswa! Coba lagi.');
-            }
+            // $result = $this->model->addSiswa($nama, $kodeGuru, $email, $jenisKelamin, $role);
+            // if ($result) {
+            //     Created($data, 'Data Siswa berhasil ditambahkan');
+            // } else {
+            //     Conflict(null, 'Gagal menambahkan data Siswa! Coba lagi.');
+            // }
         }
     }
 
