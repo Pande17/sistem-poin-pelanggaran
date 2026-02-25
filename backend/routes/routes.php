@@ -23,6 +23,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
 
 // Parse the URI and determine the endpoint
 $path = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
+
+// Menghapus prefix '/api' dari URL jika ada
+if (strpos($path, '/api') === 0) {
+    $path = substr($path, 4);
+}
+
 $segments = explode('/', trim($path, '/'));
 $endpoint = end($segments);
 
@@ -30,13 +36,16 @@ $endpoint = end($segments);
 if (is_numeric($endpoint) && isset($segments[count($segments) - 2]) && $segments[count($segments) - 2] === 'guru') {
     $_GET['id'] = $endpoint;
     $endpoint = 'guru';
-} elseif (is_numeric($endpoint) && isset($segments[count($segments) - 2]) && $segments[count($segments) - 2] === 'siswa') {
+}
+elseif (is_numeric($endpoint) && isset($segments[count($segments) - 2]) && $segments[count($segments) - 2] === 'siswa') {
     $_GET['id'] = $endpoint;
     $endpoint = 'siswa';
-} elseif (is_numeric($endpoint) && isset($segments[count($segments) - 2]) && $segments[count($segments) - 2] === 'pelanggaran') {
+}
+elseif (is_numeric($endpoint) && isset($segments[count($segments) - 2]) && $segments[count($segments) - 2] === 'pelanggaran') {
     $_GET['id'] = $endpoint;
     $endpoint = 'pelanggaran';
-} elseif (is_numeric($endpoint) && isset($segments[count($segments) - 2]) && $segments[count($segments) - 2] === 'surat') {
+}
+elseif (is_numeric($endpoint) && isset($segments[count($segments) - 2]) && $segments[count($segments) - 2] === 'surat') {
     $_GET['id'] = $endpoint;
     $endpoint = 'surat';
 }
@@ -46,7 +55,8 @@ switch ($endpoint) {
     case 'login':
         if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             $authController->login();
-        } else {
+        }
+        else {
             // Method Not Allowed
             BadRequest(null, 'Method Not Allowed');
         }
@@ -133,6 +143,7 @@ switch ($endpoint) {
         break;
 
     default:
+        // Default case
         // Route not found
         NotFound(null, 'Route not found');
 }

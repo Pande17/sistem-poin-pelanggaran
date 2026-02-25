@@ -17,7 +17,7 @@ const ProtectedRoute = ({ children, roles }: ProtectedRouteProps) => {
   const user = JSON.parse(userRaw)
 
   // proteksi role (opsional)
-  if (roles && !roles.includes(user.role)) {
+  if (roles && !roles.includes(user.role?.toLowerCase())) {
     return <Navigate to="/404" replace />
   }
 

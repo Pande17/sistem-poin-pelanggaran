@@ -1,10 +1,12 @@
 <?php
 
-class Token {
+class Token
+{
 
     private static string $secret = "kaiceviolation";
 
-    public static function generate(array $payload): string {
+    public static function generate(array $payload): string
+    {
         $header = base64_encode(json_encode([
             "alg" => "HS256",
             "typ" => "JWT"
@@ -21,7 +23,8 @@ class Token {
         return "$header.$body.$signature";
     }
 
-    public static function verify(string $token): array|false {
+    public static function verify(string $token): array |false
+    {
         $parts = explode(".", $token);
 
         if (count($parts) !== 3) {

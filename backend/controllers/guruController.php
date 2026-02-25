@@ -2,14 +2,17 @@
 require_once 'models/guru.php';
 require_once 'helpers/responseHelper.php';
 
-class GuruController {
+class GuruController
+{
     private $model;
 
-    public function __construct() {
+    public function __construct()
+    {
         $this->model = new GuruModel();
     }
 
-    public function getGuru() {
+    public function getGuru()
+    {
         if ($_SERVER['REQUEST_METHOD'] == 'GET') {
             $id = isset($_GET['id']) ? $_GET['id'] : null;
             if ($id) {
@@ -17,25 +20,28 @@ class GuruController {
                 if ($guru) {
                     // Jika guru dengan ID tersebut ditemukan
                     Success($guru, "Data guru dengan ID $id berhasil diambil");
-                } else {
+                }
+                else {
                     NotFound(null, "Guru dengan ID $id tidak ditemukan");
                 }
-            } else {
+            }
+            else {
                 $guru = $this->model->getAllGuru();
                 Success($guru, "Data guru berhasil diambil");
             }
         }
     }
 
-    public function createGuru() {
+    public function createGuru()
+    {
         if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             $data = json_decode(file_get_contents("php://input"), true);
             $username = $data['username'];
             $password = $data['password'];
             $nama = $data['nama'];
             $kodeGuru = $data['kode_guru'];
-            $email = $data['email'];
             $jenisKelamin = $data['jenis_kelamin'];
+            $email = $data['email'];
             $role = $data['role'];
 
             // Hash password sebelum disimpan
@@ -48,13 +54,15 @@ class GuruController {
                 // Return data dengan password yang sudah di-hash
                 $data['password'] = $hashedPassword;
                 Created($data, 'Data Guru berhasil ditambahkan');
-            } else {
+            }
+            else {
                 Conflict(null, 'Gagal menambahkan data Guru! Coba lagi.');
             }
         }
     }
 
-    public function updateGuru() {
+    public function updateGuru()
+    {
         if ($_SERVER['REQUEST_METHOD'] == 'PUT') {
             $data = json_decode(file_get_contents("php://input"), true);
             $id = isset($data['id']) ? $data['id'] : (isset($_GET['id']) ? $_GET['id'] : null);
@@ -62,8 +70,8 @@ class GuruController {
             $password = $data['password'];
             $nama = $data['nama'];
             $kodeGuru = $data['kode_guru'];
-            $email = $data['email'];
             $jenisKelamin = $data['jenis_kelamin'];
+            $email = $data['email'];
             $role = $data['role'];
 
             // Hash password sebelum disimpan
@@ -76,13 +84,15 @@ class GuruController {
                 // Return data dengan password yang sudah di-hash
                 $data['password'] = $hashedPassword;
                 Success($data, 'Data Guru berhasil diupdate');
-            } else {
+            }
+            else {
                 Conflict(null, 'Gagal mengupdate data Guru! Coba lagi.');
             }
         }
     }
 
-    public function deleteGuru() {
+    public function deleteGuru()
+    {
         if ($_SERVER['REQUEST_METHOD'] == 'DELETE') {
             $data = json_decode(file_get_contents("php://input"), true);
             $id = isset($data['id']) ? $data['id'] : (isset($_GET['id']) ? $_GET['id'] : null);
@@ -90,7 +100,8 @@ class GuruController {
             $result = $this->model->deleteGuru($id);
             if ($result) {
                 Success(null, 'Data Guru berhasil dihapus');
-            } else {
+            }
+            else {
                 Conflict(null, 'Gagal menghapus data Guru! Coba lagi.');
             }
         }

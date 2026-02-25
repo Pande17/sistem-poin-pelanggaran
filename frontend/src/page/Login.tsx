@@ -32,17 +32,18 @@ function Login() {
 				}),
 			});
 
-			const data = await res.json();
+			const responseData = await res.json();
+			const result = responseData.data;
 
-			if (!res.ok || !data.status) {
-				throw new Error(data.message || 'Login gagal');
+			if (!res.ok || responseData.status !== 200 || !result) {
+				throw new Error(responseData.message || 'Login gagal');
 			}
 
 			// simpan auth
-			localStorage.setItem('token', data.token);
-			localStorage.setItem('user', JSON.stringify(data.user));
+			localStorage.setItem('token', result.token);
+			localStorage.setItem('user', JSON.stringify(result.user));
 
-			const role = data.user?.role;
+			const role = result.user?.role?.toLowerCase();
 			const redirectPath = ROLE_ROUTE[role];
 
 			if (!redirectPath) {
