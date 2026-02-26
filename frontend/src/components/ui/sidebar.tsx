@@ -6,7 +6,7 @@ import { IconMenu2, IconX } from "@tabler/icons-react";
 
 interface Links {
   label: string;
-  href: string;
+  href?: string;
   icon: React.JSX.Element | React.ReactNode;
 }
 
@@ -83,19 +83,18 @@ export const DesktopSidebar = ({
   children,
   ...props
 }: React.ComponentProps<typeof motion.div>) => {
-  const { open, setOpen, animate } = useSidebar();
+  const { open, animate } = useSidebar();
   return (
     <>
       <motion.div
         className={cn(
-          "h-full px-4 py-4 hidden  md:flex md:flex-col bg-neutral-100 dark:bg-neutral-800 w-75 shrink-0",
+          "h-full px-4 py-4 hidden md:flex md:flex-col bg-[#151829] border-r border-white/5 shrink-0 transition-transform",
           className
         )}
         animate={{
-          width: animate ? (open ? "300px" : "60px") : "300px",
+          width: animate ? (open ? "240px" : "72px") : "240px",
         }}
-        onMouseEnter={() => setOpen(true)}
-        onMouseLeave={() => setOpen(false)}
+        transition={{ duration: 0.3, ease: "easeOut" }}
         {...props}
       >
         {children}
@@ -114,13 +113,13 @@ export const MobileSidebar = ({
     <>
       <div
         className={cn(
-          "h-10 px-4 py-4 flex flex-row md:hidden  items-center justify-between bg-neutral-100 dark:bg-neutral-800 w-full"
+          "h-14 px-4 py-4 flex flex-row md:hidden items-center justify-between bg-[#151829] w-full border-b border-white/5 shadow-sm"
         )}
         {...props}
       >
         <div className="flex justify-end z-20 w-full">
           <IconMenu2
-            className="text-neutral-800 dark:text-neutral-200"
+            className="text-white cursor-pointer"
             onClick={() => setOpen(!open)}
           />
         </div>
@@ -135,12 +134,12 @@ export const MobileSidebar = ({
                 ease: "easeInOut",
               }}
               className={cn(
-                "fixed h-full w-full inset-0 bg-white dark:bg-neutral-900 p-10 z-100 flex flex-col justify-between",
+                "fixed h-full w-full inset-0 bg-[#151829] p-10 z-100 flex flex-col justify-between",
                 className
               )}
             >
               <div
-                className="absolute right-10 top-10 z-50 text-neutral-800 dark:text-neutral-200"
+                className="absolute right-10 top-10 z-50 text-white cursor-pointer"
                 onClick={() => setOpen(!open)}
               >
                 <IconX />
@@ -161,25 +160,30 @@ export const SidebarLink = ({
 }: {
   link: Links;
   className?: string;
+  onClick?: React.MouseEventHandler<HTMLAnchorElement>;
 }) => {
   const { open, animate } = useSidebar();
   return (
     <a
       href={link.href}
       className={cn(
-        "flex items-center justify-start gap-2  group/sidebar py-2",
+        "flex items-center gap-2 group/sidebar py-2 rounded-lg hover:bg-[#1e2238] transition-all text-neutral-400 hover:text-white duration-300 ease-in-out",
+        open ? "justify-start px-3" : "justify-center px-0",
         className
       )}
       {...props}
     >
-      {link.icon}
+      <div className={cn("transition-all duration-300 ease-in-out shrink-0", !open && "scale-110")}>
+        {link.icon}
+      </div>
 
       <motion.span
         animate={{
           display: animate ? (open ? "inline-block" : "none") : "inline-block",
           opacity: animate ? (open ? 1 : 0) : 1,
         }}
-        className="text-neutral-700 dark:text-neutral-200 text-sm group-hover/sidebar:translate-x-1 transition duration-150 whitespace-pre inline-block p-0! m-0!"
+        transition={{ duration: 0.3, ease: "easeOut" }}
+        className="text-sm font-medium whitespace-pre inline-block p-0! m-0! overflow-hidden"
       >
         {link.label}
       </motion.span>
