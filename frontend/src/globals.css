@@ -11,6 +11,7 @@
 @custom-variant focus-input-within (&:has(input:focus));
 
 @utility scrollbar-hide {
+
     /* For Webkit-based browsers (Chrome, Safari and Opera) */
     &::-webkit-scrollbar {
         display: none;
@@ -18,8 +19,10 @@
     }
 
     /* For IE, Edge and Firefox */
-    -ms-overflow-style: none; /* IE and Edge */
-    scrollbar-width: none; /* Firefox */
+    -ms-overflow-style: none;
+    /* IE and Edge */
+    scrollbar-width: none;
+    /* Firefox */
 }
 
 @utility transition-inherit-all {
@@ -51,6 +54,7 @@ input::-webkit-inner-spin-button {
     -webkit-appearance: none;
     margin: 0;
 }
+
 /* Firefox */
 input[type="number"] {
     -moz-appearance: textfield;

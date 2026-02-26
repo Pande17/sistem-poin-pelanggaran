@@ -1,8 +1,8 @@
 import AdminLayout from "@/layouts/AdminLayout";
 
-export function AdminDashboard() {
+export function AdminSiswa() {
     return (
-        <AdminLayout title="Dashboard">
+        <AdminLayout title="Data Siswa">
             <div className="flex gap-4">
                 {[...new Array(4)].map((idx) => (
                     <div
@@ -23,4 +23,4 @@ export function AdminDashboard() {
     );
 }
 
-export default AdminDashboard;
+export default AdminSiswa;

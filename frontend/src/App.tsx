@@ -3,6 +3,10 @@ import Login from "@/page/Login"
 
 // Admin Path Routes
 import AdminDashboard from "@/page/admin/Dashboard"
+import AdminPelanggaran from "@/page/admin/Pelanggaran"
+import AdminSiswa from "@/page/admin/Siswa"
+import AdminJenisPelanggaran from "@/page/admin/JenisPelanggaran"
+import AdminGuru from "@/page/admin/Guru"
 
 // Guru Path Routes
 import GuruDashboard from "@/page/guru/Dashboard"
@@ -29,21 +33,41 @@ function App() {
       <Route path="/admin/dashboard" element={
         <ProtectedRoute roles={["admin"]}>
           <AdminDashboard />
-        </ProtectedRoute>} 
+        </ProtectedRoute>}
+      />
+      <Route path="/admin/pelanggaran" element={
+        <ProtectedRoute roles={["admin"]}>
+          <AdminPelanggaran />
+        </ProtectedRoute>}
+      />
+      <Route path="/admin/siswa" element={
+        <ProtectedRoute roles={["admin"]}>
+          <AdminSiswa />
+        </ProtectedRoute>}
+      />
+      <Route path="/admin/jenis-pelanggaran" element={
+        <ProtectedRoute roles={["admin"]}>
+          <AdminJenisPelanggaran />
+        </ProtectedRoute>}
+      />
+      <Route path="/admin/guru" element={
+        <ProtectedRoute roles={["admin"]}>
+          <AdminGuru />
+        </ProtectedRoute>}
       />
 
       {/* Guru Path Routes */}
       <Route path="/guru/dashboard" element={
         <ProtectedRoute roles={["guru"]}>
           <GuruDashboard />
-        </ProtectedRoute>} 
+        </ProtectedRoute>}
       />
 
       {/* Siswa Path Routes */}
       <Route path="/bk/dashboard" element={
         <ProtectedRoute roles={["bk"]}>
           <BKDasboard />
-        </ProtectedRoute>} 
+        </ProtectedRoute>}
       />
 
       {/* Siswa Path Routes */}
@@ -59,8 +83,8 @@ function App() {
       />
 
       {/* Not Found Page */}
-      <Route path="/404" 
-        element={<NotFoundPage />} 
+      <Route path="/404"
+        element={<NotFoundPage />}
       />
     </Routes>
   )
