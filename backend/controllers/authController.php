@@ -81,6 +81,8 @@ class authController
 
     public static function logout()
     {
+
+
         // stateless JWT → FE cukup hapus token
         Success(null, "Logout berhasil");
     }
