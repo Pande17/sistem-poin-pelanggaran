@@ -2,7 +2,7 @@
 import { cn } from "@/lib/utils";
 import React, { useState, createContext, useContext } from "react";
 import { AnimatePresence, motion } from "motion/react";
-import { IconMenu2, IconX } from "@tabler/icons-react";
+import { IconX } from "@tabler/icons-react";
 
 interface Links {
   label: string;
@@ -94,7 +94,7 @@ export const DesktopSidebar = ({
         animate={{
           width: animate ? (open ? "240px" : "72px") : "240px",
         }}
-        transition={{ duration: 0.3, ease: "easeOut" }}
+        transition={{ duration: 0.15, ease: "easeOut" }}
         {...props}
       >
         {children}
@@ -113,16 +113,10 @@ export const MobileSidebar = ({
     <>
       <div
         className={cn(
-          "h-14 px-4 py-4 flex flex-row md:hidden items-center justify-between bg-[#151829] w-full border-b border-white/5 shadow-sm"
+          "h-0 w-0 md:hidden"
         )}
         {...props}
       >
-        <div className="flex justify-end z-20 w-full">
-          <IconMenu2
-            className="text-white cursor-pointer"
-            onClick={() => setOpen(!open)}
-          />
-        </div>
         <AnimatePresence>
           {open && (
             <motion.div
@@ -130,7 +124,7 @@ export const MobileSidebar = ({
               animate={{ x: 0, opacity: 1 }}
               exit={{ x: "-100%", opacity: 0 }}
               transition={{
-                duration: 0.3,
+                duration: 0.15,
                 ease: "easeInOut",
               }}
               className={cn(
@@ -167,13 +161,13 @@ export const SidebarLink = ({
     <a
       href={link.href}
       className={cn(
-        "flex items-center gap-2 group/sidebar py-2 rounded-lg hover:bg-[#1e2238] transition-all text-neutral-400 hover:text-white duration-300 ease-in-out",
+        "flex items-center gap-2 group/sidebar py-2 rounded-lg hover:bg-[#1e2238] transition-all text-neutral-400 hover:text-white duration-150 ease-in-out",
         open ? "justify-start px-3" : "justify-center px-0",
         className
       )}
       {...props}
     >
-      <div className={cn("transition-all duration-300 ease-in-out shrink-0", !open && "scale-110")}>
+      <div className={cn("transition-all duration-150 ease-in-out shrink-0", !open && "scale-110")}>
         {link.icon}
       </div>
 
@@ -182,7 +176,7 @@ export const SidebarLink = ({
           display: animate ? (open ? "inline-block" : "none") : "inline-block",
           opacity: animate ? (open ? 1 : 0) : 1,
         }}
-        transition={{ duration: 0.3, ease: "easeOut" }}
+        transition={{ duration: 0.15, ease: "easeOut" }}
         className="text-sm font-medium whitespace-pre inline-block p-0! m-0! overflow-hidden"
       >
         {link.label}

@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import AdminLayout from "@/layouts/AdminLayout";
-import { IconEdit, IconTrash, IconX, IconChevronDown, IconAlertCircle, IconInbox, IconLoader2 } from "@tabler/icons-react";
+import { IconEdit, IconTrash, IconX, IconChevronDown, IconAlertCircle, IconInbox, IconLoader2, IconCheck, IconInfoCircle, IconTrashX } from "@tabler/icons-react";
 import { motion, AnimatePresence } from "motion/react";
 import { cn } from "@/lib/utils";
 
@@ -87,6 +87,16 @@ export function AdminGuru() {
     const [formData, setFormData] = useState<any>(initialFormState);
     const [formLoading, setFormLoading] = useState(false);
 
+    // Dialog & Toaster states
+    const [deleteConfirmId, setDeleteConfirmId] = useState<number | null>(null);
+    const [saveConfirm, setSaveConfirm] = useState(false);
+    const [notification, setNotification] = useState<{ show: boolean, type: "success" | "error", message: string }>({ show: false, type: "success", message: "" });
+
+    const showNotification = (type: "success" | "error", message: string) => {
+        setNotification({ show: true, type, message });
+        setTimeout(() => setNotification(prev => ({ ...prev, show: false })), 3000);
+    };
+
     const openModal = (mode: "add" | "edit", guru?: GuruRecord) => {
         setModalMode(mode);
         if (mode === "edit" && guru) {
@@ -112,6 +122,22 @@ export function AdminGuru() {
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+
+        const payload = { ...formData };
+        if (modalMode === "add" && !payload.password) {
+            showNotification("error", "Password is required for new Guru");
+            return;
+        }
+        if (!payload.jenis_kelamin || !payload.role) {
+            showNotification("error", "Mohon pilih Jenis Kelamin dan Role!");
+            return;
+        }
+
+        setSaveConfirm(true);
+    };
+
+    const executeSave = async () => {
+        setSaveConfirm(false);
         setFormLoading(true);
 
         try {
@@ -120,16 +146,6 @@ export function AdminGuru() {
             const method = modalMode === "add" ? "POST" : "PUT";
 
             const payload = { ...formData };
-            if (modalMode === "add" && !payload.password) {
-                alert("Password is required for new Guru");
-                setFormLoading(false);
-                return;
-            }
-            if (!payload.jenis_kelamin || !payload.role) {
-                alert("Mohon pilih Jenis Kelamin dan Role!");
-                setFormLoading(false);
-                return;
-            }
 
             const response = await fetch(url, {
                 method: method,
@@ -145,11 +161,12 @@ export function AdminGuru() {
             if (response.ok) {
                 closeModal();
                 fetchGuru();
+                showNotification("success", `Data berhasil ${modalMode === "add" ? "ditambahkan" : "diedit"}!`);
             } else {
-                alert(result.message || `Gagal ${modalMode === "add" ? "menambahkan" : "mengupdate"} data`);
+                showNotification("error", result.message || `Gagal ${modalMode === "add" ? "menambahkan" : "mengupdate"} data`);
             }
         } catch (err: any) {
-            alert(err.message || "Terjadi kesalahan koneksi");
+            showNotification("error", err.message || "Terjadi kesalahan koneksi");
         } finally {
             setFormLoading(false);
         }
@@ -191,8 +208,14 @@ export function AdminGuru() {
         fetchGuru();
     }, []);
 
-    const handleDelete = async (id: number) => {
-        if (!window.confirm("Apakah Anda yakin ingin menghapus data guru ini?")) return;
+    const handleDelete = (id: number) => {
+        setDeleteConfirmId(id);
+    };
+
+    const executeDelete = async () => {
+        if (deleteConfirmId === null) return;
+        const idToDelete = deleteConfirmId;
+        setDeleteConfirmId(null);
 
         try {
             const token = localStorage.getItem("token") || "";
@@ -202,17 +225,18 @@ export function AdminGuru() {
                     "Content-Type": "application/json",
                     "Authorization": `Bearer ${token}`
                 },
-                body: JSON.stringify({ id })
+                body: JSON.stringify({ id: idToDelete })
             });
             const result = await response.json();
 
             if (response.ok) {
                 fetchGuru();
+                showNotification("success", "Data Berhasil Dihapus!");
             } else {
-                alert(result.message || "Gagal menghapus data guru");
+                showNotification("error", result.message || "Gagal menghapus data guru");
             }
         } catch (error: any) {
-            alert(error.message || "Terjadi kesalahan");
+            showNotification("error", error.message || "Terjadi kesalahan");
         }
     };
 
@@ -238,13 +262,14 @@ export function AdminGuru() {
                                 <th className="px-6 py-4 font-medium">Nama</th>
                                 <th className="px-6 py-4 font-medium">Email</th>
                                 <th className="px-6 py-4 font-medium">Jenis Kelamin</th>
+                                <th className="px-6 py-4 font-medium">Role</th>
                                 <th className="px-6 py-4 font-medium text-center">Aksi</th>
                             </tr>
                         </thead>
                         <tbody className="text-sm text-neutral-700 divide-y divide-neutral-100">
                             {loading ? (
                                 <tr>
-                                    <td colSpan={6} className="px-6 py-12 text-center h-48">
+                                    <td colSpan={7} className="px-6 py-12 text-center h-48">
                                         <div className="flex flex-col items-center justify-center space-y-3">
                                             <IconLoader2 className="h-8 w-8 text-blue-500 animate-spin" />
                                             <p className="text-neutral-500 font-medium">Memuat data guru...</p>
@@ -253,7 +278,7 @@ export function AdminGuru() {
                                 </tr>
                             ) : error ? (
                                 <tr>
-                                    <td colSpan={6} className="px-6 py-12 text-center h-48 bg-red-50/50">
+                                    <td colSpan={7} className="px-6 py-12 text-center h-48 bg-red-50/50">
                                         <div className="flex flex-col items-center justify-center space-y-3">
                                             <IconAlertCircle className="h-10 w-10 text-red-500" />
                                             <p className="text-red-600 font-medium">{error}</p>
@@ -262,7 +287,7 @@ export function AdminGuru() {
                                 </tr>
                             ) : data.length === 0 ? (
                                 <tr>
-                                    <td colSpan={6} className="px-6 py-16 text-center h-64 bg-neutral-50/50">
+                                    <td colSpan={7} className="px-6 py-16 text-center h-64 bg-neutral-50/50">
                                         <div className="flex flex-col items-center justify-center space-y-4">
                                             <div className="p-4 bg-white rounded-full shadow-sm border border-neutral-100">
                                                 <IconInbox className="h-12 w-12 text-neutral-400" />
@@ -285,6 +310,9 @@ export function AdminGuru() {
                                         <td className="px-6 py-4">{item.email}</td>
                                         <td className="px-6 py-4">
                                             {item.jenis_kelamin === 'L' ? 'Laki-Laki' : item.jenis_kelamin === 'P' ? 'Perempuan' : '-'}
+                                        </td>
+                                        <td className="px-6 py-4 font-medium text-neutral-600">
+                                            {item.role ? item.role.toUpperCase() : '-'}
                                         </td>
                                         <td className="px-6 py-4 flex items-center justify-center gap-2">
                                             <button
@@ -441,6 +469,94 @@ export function AdminGuru() {
                     </div>
                 </div>
             )}
+
+            {/* Notification Toast */}
+            <AnimatePresence>
+                {notification.show && (
+                    <motion.div
+                        initial={{ opacity: 0, y: -20, x: "-50%" }}
+                        animate={{ opacity: 1, y: 0, x: "-50%" }}
+                        exit={{ opacity: 0, y: -20, x: "-50%" }}
+                        className={cn(
+                            "fixed top-6 left-1/2 z-[100] flex items-center gap-3 px-5 py-3.5 rounded-xl shadow-2xl border backdrop-blur-md",
+                            notification.type === "success"
+                                ? "bg-green-500/90 text-white border-green-600/50"
+                                : "bg-red-500/90 text-white border-red-600/50"
+                        )}
+                    >
+                        {notification.type === "success" ? <IconCheck className="h-5 w-5" /> : <IconAlertCircle className="h-5 w-5" />}
+                        <span className="text-sm font-semibold tracking-wide">{notification.message}</span>
+                    </motion.div>
+                )}
+            </AnimatePresence>
+
+            {/* Delete Confirmation Modal */}
+            <AnimatePresence>
+                {deleteConfirmId !== null && (
+                    <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/50 backdrop-blur-sm">
+                        <motion.div
+                            initial={{ opacity: 0, scale: 0.95 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            exit={{ opacity: 0, scale: 0.95 }}
+                            className="bg-white rounded-2xl shadow-xl w-full max-w-sm overflow-hidden p-6 text-center mx-4"
+                        >
+                            <div className="w-16 h-16 rounded-full bg-red-100 flex items-center justify-center mx-auto mb-4">
+                                <IconTrashX className="h-8 w-8 text-red-600" />
+                            </div>
+                            <h3 className="text-xl font-bold text-neutral-800 mb-2">Konfirmasi Hapus</h3>
+                            <p className="text-neutral-500 text-sm mb-6">Anda Yakin Ingin Menghapus Data ini?</p>
+                            <div className="flex items-center gap-3">
+                                <button
+                                    onClick={() => setDeleteConfirmId(null)}
+                                    className="cursor-pointer flex-1 py-2.5 text-sm font-medium text-neutral-600 border border-neutral-200 hover:bg-neutral-50 rounded-xl transition-colors"
+                                >
+                                    Batal
+                                </button>
+                                <button
+                                    onClick={executeDelete}
+                                    className="cursor-pointer flex-1 py-2.5 text-sm font-medium text-white bg-red-600 hover:bg-red-700 rounded-xl transition-colors shadow-sm"
+                                >
+                                    Hapus
+                                </button>
+                            </div>
+                        </motion.div>
+                    </div>
+                )}
+            </AnimatePresence>
+
+            {/* Save Confirmation Modal */}
+            <AnimatePresence>
+                {saveConfirm && (
+                    <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/50 backdrop-blur-sm">
+                        <motion.div
+                            initial={{ opacity: 0, scale: 0.95 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            exit={{ opacity: 0, scale: 0.95 }}
+                            className="bg-white rounded-2xl shadow-xl w-full max-w-sm overflow-hidden p-6 text-center mx-4"
+                        >
+                            <div className="w-16 h-16 rounded-full bg-blue-100 flex items-center justify-center mx-auto mb-4">
+                                <IconInfoCircle className="h-8 w-8 text-blue-600" />
+                            </div>
+                            <h3 className="text-xl font-bold text-neutral-800 mb-2">Konfirmasi Simpan</h3>
+                            <p className="text-neutral-500 text-sm mb-6">Anda Yakin Ingin Menyimpan Data ini?</p>
+                            <div className="flex items-center gap-3">
+                                <button
+                                    onClick={() => setSaveConfirm(false)}
+                                    className="cursor-pointer flex-1 py-2.5 text-sm font-medium text-neutral-600 border border-neutral-200 hover:bg-neutral-50 rounded-xl transition-colors"
+                                >
+                                    Batal
+                                </button>
+                                <button
+                                    onClick={executeSave}
+                                    className="cursor-pointer flex-1 py-2.5 text-sm font-medium text-white bg-[#151829] hover:bg-[#1e2238] rounded-xl transition-colors shadow-sm"
+                                >
+                                    Simpan
+                                </button>
+                            </div>
+                        </motion.div>
+                    </div>
+                )}
+            </AnimatePresence>
         </AdminLayout>
     );
 }

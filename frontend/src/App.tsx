@@ -7,6 +7,8 @@ import AdminPelanggaran from "@/page/admin/Pelanggaran"
 import AdminSiswa from "@/page/admin/Siswa"
 import AdminJenisPelanggaran from "@/page/admin/JenisPelanggaran"
 import AdminGuru from "@/page/admin/Guru"
+import AdminKelas from "@/page/admin/Kelas"
+import AdminCetakSurat from "@/page/admin/CetakSurat"
 
 // Guru Path Routes
 import GuruDashboard from "@/page/guru/Dashboard"
@@ -53,6 +55,16 @@ function App() {
       <Route path="/admin/guru" element={
         <ProtectedRoute roles={["admin"]}>
           <AdminGuru />
+        </ProtectedRoute>}
+      />
+      <Route path="/admin/kelas" element={
+        <ProtectedRoute roles={["admin"]}>
+          <AdminKelas />
+        </ProtectedRoute>}
+      />
+      <Route path="/admin/cetak-surat" element={
+        <ProtectedRoute roles={["admin"]}>
+          <AdminCetakSurat />
         </ProtectedRoute>}
       />
 
