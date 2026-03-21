@@ -1,62 +1,15 @@
 import { useState, useEffect } from "react";
 import AdminLayout from "@/layouts/AdminLayout";
-import { IconEdit, IconTrash, IconX, IconChevronDown, IconAlertCircle, IconInbox, IconLoader2, IconCheck, IconInfoCircle, IconTrashX } from "@tabler/icons-react";
+import { IconEdit, IconTrash, IconX, IconAlertCircle, IconInbox, IconLoader2, IconCheck, IconInfoCircle, IconTrashX } from "@tabler/icons-react";
 import { motion, AnimatePresence } from "motion/react";
 import { cn } from "@/lib/utils";
 
-function CustomSelect({ value, onChange, options, placeholder, name }: { value: string, onChange: (e: any) => void, options: { label: string, value: string }[], placeholder: string, name: string }) {
-    const [open, setOpen] = useState(false);
-    const selected = options.find((o) => o.value === value);
 
-    return (
-        <div className="relative">
-            <div
-                onClick={() => setOpen(!open)}
-                className="w-full px-3 py-2 border border-neutral-200 rounded-lg text-sm bg-white cursor-pointer flex justify-between items-center focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
-            >
-                <span className={selected ? "text-neutral-800" : "text-neutral-400"}>
-                    {selected ? selected.label : placeholder}
-                </span>
-                <IconChevronDown className={cn("h-4 w-4 text-neutral-400 transition-transform duration-200", open && "rotate-180")} />
-            </div>
-            <AnimatePresence>
-                {open && (
-                    <>
-                        <div className="fixed inset-0 z-40" onClick={() => setOpen(false)}></div>
-                        <motion.div
-                            initial={{ opacity: 0, y: -10, scale: 0.95 }}
-                            animate={{ opacity: 1, y: 0, scale: 1 }}
-                            exit={{ opacity: 0, y: -10, scale: 0.95 }}
-                            transition={{ duration: 0.2, ease: "easeOut" }}
-                            className="absolute z-50 w-full mt-2 max-h-48 overflow-y-auto bg-white border border-neutral-100 rounded-xl shadow-xl"
-                        >
-                            {options.map((opt) => (
-                                <div
-                                    key={opt.value}
-                                    onClick={() => {
-                                        onChange({ target: { name, value: opt.value } });
-                                        setOpen(false);
-                                    }}
-                                    className={cn(
-                                        "px-4 py-2.5 text-sm cursor-pointer transition-colors",
-                                        value === opt.value ? "bg-blue-50 text-blue-700 font-medium" : "text-neutral-700 hover:bg-neutral-50"
-                                    )}
-                                >
-                                    {opt.label}
-                                </div>
-                            ))}
-                        </motion.div>
-                    </>
-                )}
-            </AnimatePresence>
-        </div>
-    );
-}
 
 interface JenisPelanggaranRecord {
     id: number;
     nama_pelanggaran: string;
-    kategori: string;
+    kode_pelanggaran: string;
     poin: number | string;
 }
 
@@ -73,7 +26,7 @@ export function AdminJenisPelanggaran() {
     const initialFormState = {
         id: 0,
         nama_pelanggaran: "",
-        kategori: "",
+        kode_pelanggaran: "",
         poin: ""
     };
     const [formData, setFormData] = useState<any>(initialFormState);
@@ -113,8 +66,8 @@ export function AdminJenisPelanggaran() {
         e.preventDefault();
 
         const payload = { ...formData };
-        if (!payload.kategori) {
-            showNotification("error", "Mohon pilih Kategori Pelanggaran!");
+        if (!payload.kode_pelanggaran) {
+            showNotification("error", "Mohon isi Kode Pelanggaran!");
             return;
         }
 
@@ -127,7 +80,7 @@ export function AdminJenisPelanggaran() {
 
         try {
             const token = localStorage.getItem("token") || "";
-            const url = "http://localhost:8000/api/jenis_pelanggaran";
+            const url = "http://localhost:8000/api/jenis-pelanggaran";
             const method = modalMode === "add" ? "POST" : "PUT";
 
             const payload = { ...formData };
@@ -158,12 +111,10 @@ export function AdminJenisPelanggaran() {
     };
 
     const fetchData = async () => {
-        // [SIMULASI DATA KOSONG]
-        /*
         try {
             setLoading(true);
             const token = localStorage.getItem("token") || "";
-            const response = await fetch("http://localhost:8000/api/jenis_pelanggaran", {
+            const response = await fetch("http://localhost:8000/api/jenis-pelanggaran", {
                 method: "GET",
                 headers: {
                     "Content-Type": "application/json",
@@ -171,7 +122,7 @@ export function AdminJenisPelanggaran() {
                 }
             });
             const result = await response.json();
-            
+
             if (response.ok && result.data) {
                 if (Array.isArray(result.data)) {
                     const activeRecords = result.data.filter((r: any) => !r.deleted_at);
@@ -187,10 +138,6 @@ export function AdminJenisPelanggaran() {
         } finally {
             setLoading(false);
         }
-        */
-
-        setLoading(false);
-        setData([]); // Memaksa web menunjukkan state kosong
     };
 
     useEffect(() => {
@@ -208,7 +155,7 @@ export function AdminJenisPelanggaran() {
 
         try {
             const token = localStorage.getItem("token") || "";
-            const response = await fetch("http://localhost:8000/api/jenis_pelanggaran", {
+            const response = await fetch("http://localhost:8000/api/jenis-pelanggaran", {
                 method: "DELETE",
                 headers: {
                     "Content-Type": "application/json",
@@ -231,7 +178,7 @@ export function AdminJenisPelanggaran() {
 
     return (
         <AdminLayout title="Jenis Pelanggaran">
-            <div className="flex flex-col flex-1 bg-white rounded-xl border border-neutral-100 shadow-sm overflow-hidden mb-6">
+            <div className="bg-white rounded-xl border border-neutral-100 shadow-sm overflow-hidden mb-6">
                 <div className="p-6 border-b border-neutral-100 flex justify-between items-center bg-white">
                     <h2 className="text-lg font-semibold text-neutral-800">Daftar Jenis Pelanggaran</h2>
                     <button
@@ -242,13 +189,13 @@ export function AdminJenisPelanggaran() {
                     </button>
                 </div>
 
-                <div className="flex-1 overflow-x-auto">
+                <div className="overflow-x-auto">
                     <table className="w-full text-left border-collapse">
                         <thead>
                             <tr className="bg-neutral-50 text-neutral-500 text-sm border-b border-neutral-100">
                                 <th className="px-6 py-4 font-medium whitespace-nowrap">No</th>
                                 <th className="px-6 py-4 font-medium whitespace-nowrap">Nama Pelanggaran</th>
-                                <th className="px-6 py-4 font-medium whitespace-nowrap">Kategori</th>
+                                <th className="px-6 py-4 font-medium whitespace-nowrap">Kode Pelanggaran</th>
                                 <th className="px-6 py-4 font-medium whitespace-nowrap">Poin</th>
                                 <th className="px-6 py-4 font-medium text-center whitespace-nowrap">Aksi</th>
                             </tr>
@@ -293,16 +240,7 @@ export function AdminJenisPelanggaran() {
                                     <tr key={item.id} className="hover:bg-neutral-50 transition-colors">
                                         <td className="px-6 py-4 whitespace-nowrap">{index + 1}</td>
                                         <td className="px-6 py-4 font-medium text-neutral-900">{item.nama_pelanggaran}</td>
-                                        <td className="px-6 py-4 whitespace-nowrap">
-                                            <span className={cn(
-                                                "px-3 py-1 text-xs font-semibold rounded-full",
-                                                item.kategori === "Ringan" ? "bg-green-100 text-green-700" :
-                                                    item.kategori === "Sedang" ? "bg-yellow-100 text-yellow-700" :
-                                                        "bg-red-100 text-red-700"
-                                            )}>
-                                                {item.kategori.toUpperCase()}
-                                            </span>
-                                        </td>
+                                        <td className="px-6 py-4 whitespace-nowrap">{item.kode_pelanggaran}</td>
                                         <td className="px-6 py-4 whitespace-nowrap font-bold text-red-600">+{item.poin}</td>
                                         <td className="px-6 py-4 flex items-center justify-center gap-2">
                                             <button
@@ -359,17 +297,15 @@ export function AdminJenisPelanggaran() {
 
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                                     <div className="space-y-1">
-                                        <label className="text-sm font-medium text-neutral-700">Kategori</label>
-                                        <CustomSelect
-                                            name="kategori"
-                                            value={formData.kategori}
+                                        <label className="text-sm font-medium text-neutral-700">Kode Pelanggaran</label>
+                                        <input
+                                            type="text"
+                                            name="kode_pelanggaran"
+                                            value={formData.kode_pelanggaran}
                                             onChange={handleFormChange}
-                                            placeholder="Pilih Kategori"
-                                            options={[
-                                                { label: "Ringan", value: "Ringan" },
-                                                { label: "Sedang", value: "Sedang" },
-                                                { label: "Berat", value: "Berat" },
-                                            ]}
+                                            required
+                                            placeholder="Misal: PEL-001"
+                                            className="w-full px-3 py-2 border border-neutral-200 rounded-lg text-sm bg-neutral-50 text-neutral-800 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all"
                                         />
                                     </div>
                                     <div className="space-y-1">

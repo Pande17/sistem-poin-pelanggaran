@@ -55,12 +55,14 @@ function CustomSelect({ value, onChange, options, placeholder, name }: { value: 
 
 interface PelanggaranRecord {
     id: number;
-    tanggal: string;
+    created_at: string;
     nama_siswa: string;
     kelas: string;
     nama_pelanggaran: string;
-    poin: number;
     keterangan: string;
+    poin: number;
+    id_siswa: number | string;
+    id_jenis_pelanggaran: number | string;
 }
 
 export function AdminPelanggaran() {
@@ -72,12 +74,16 @@ export function AdminPelanggaran() {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [modalMode, setModalMode] = useState<"add" | "edit">("add");
 
+    const [siswaOptions, setSiswaOptions] = useState<any[]>([]);
+    const [kelasOptions, setKelasOptions] = useState<any[]>([]);
+    const [jenisOptions, setJenisOptions] = useState<any[]>([]);
+
     // Form state
     const initialFormState = {
         id: 0,
-        tanggal: new Date().toISOString().slice(0, 10),
-        siswa_id: "",
-        jenis_pelanggaran_id: "",
+        kelas: "",
+        id_siswa: "",
+        id_jenis_pelanggaran: "",
         keterangan: ""
     };
     const [formData, setFormData] = useState<any>(initialFormState);
@@ -96,9 +102,15 @@ export function AdminPelanggaran() {
     const openModal = (mode: "add" | "edit", item?: PelanggaranRecord) => {
         setModalMode(mode);
         if (mode === "edit" && item) {
-            setFormData({ ...item }); // Mapping the IDs would be required realistically
+            setFormData({
+                id: item.id,
+                kelas: item.kelas || "",
+                id_siswa: item.id_siswa?.toString() || "",
+                id_jenis_pelanggaran: item.id_jenis_pelanggaran?.toString() || "",
+                keterangan: item.keterangan || ""
+            });
         } else {
-            setFormData({ ...initialFormState, tanggal: new Date().toISOString().slice(0, 10) });
+            setFormData({ ...initialFormState });
         }
         setIsModalOpen(true);
     };
@@ -116,8 +128,7 @@ export function AdminPelanggaran() {
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
 
-        const payload = { ...formData };
-        if (!payload.siswa_id || !payload.jenis_pelanggaran_id) {
+        if (!formData.id_siswa || !formData.id_jenis_pelanggaran) {
             showNotification("error", "Mohon pilih Nama Siswa dan Jenis Pelanggaran!");
             return;
         }
@@ -135,6 +146,11 @@ export function AdminPelanggaran() {
             const method = modalMode === "add" ? "POST" : "PUT";
 
             const payload = { ...formData };
+
+            const selectedJenis = jenisOptions.find(opt => opt.value === payload.id_jenis_pelanggaran);
+            if (selectedJenis) {
+                payload.poin = selectedJenis.poin;
+            }
 
             const response = await fetch(url, {
                 method: method,
@@ -161,9 +177,35 @@ export function AdminPelanggaran() {
         }
     };
 
+    const fetchOptions = async () => {
+        try {
+            const token = localStorage.getItem("token") || "";
+            const headers = { "Content-Type": "application/json", "Authorization": `Bearer ${token}` };
+
+            const [siswaRes, jenisRes] = await Promise.all([
+                fetch("http://localhost:8000/api/siswa", { headers }),
+                fetch("http://localhost:8000/api/jenis-pelanggaran", { headers })
+            ]);
+
+            const siswaData = await siswaRes.json();
+            const jenisData = await jenisRes.json();
+
+            if (siswaRes.ok && Array.isArray(siswaData.data)) {
+                const sData = siswaData.data.map((s: any) => ({ label: `${s.nama} - ${s.kelas}`, value: s.id.toString(), kelas: s.kelas }));
+                setSiswaOptions(sData);
+
+                const uniqueKelas = Array.from(new Set(sData.map((s: any) => s.kelas))).filter(Boolean).sort();
+                setKelasOptions(uniqueKelas.map(k => ({ label: k as string, value: k as string })));
+            }
+            if (jenisRes.ok && Array.isArray(jenisData.data)) {
+                setJenisOptions(jenisData.data.map((j: any) => ({ label: `${j.nama_pelanggaran} - Poin ${j.poin}`, value: j.id.toString(), poin: j.poin })));
+            }
+        } catch (err) {
+            console.error("Gagal mengambil opsi:", err);
+        }
+    };
+
     const fetchData = async () => {
-        // [SIMULASI DATA KOSONG]
-        /*
         try {
             setLoading(true);
             const token = localStorage.getItem("token") || "";
@@ -175,7 +217,7 @@ export function AdminPelanggaran() {
                 }
             });
             const result = await response.json();
-            
+
             if (response.ok && result.data) {
                 if (Array.isArray(result.data)) {
                     const activeRecords = result.data.filter((r: any) => !r.deleted_at);
@@ -191,13 +233,10 @@ export function AdminPelanggaran() {
         } finally {
             setLoading(false);
         }
-        */
-
-        setLoading(false);
-        setData([]); // Memaksa web menunjukkan state kosong
     };
 
     useEffect(() => {
+        fetchOptions();
         fetchData();
     }, []);
 
@@ -235,7 +274,7 @@ export function AdminPelanggaran() {
 
     return (
         <AdminLayout title="Daftar Pelanggaran">
-            <div className="flex flex-col flex-1 bg-white rounded-xl border border-neutral-100 shadow-sm overflow-hidden mb-6">
+            <div className="bg-white rounded-xl border border-neutral-100 shadow-sm overflow-hidden mb-6">
                 <div className="p-6 border-b border-neutral-100 flex justify-between items-center bg-white">
                     <h2 className="text-lg font-semibold text-neutral-800">Daftar Pelanggaran Siswa</h2>
                     <button
@@ -246,7 +285,7 @@ export function AdminPelanggaran() {
                     </button>
                 </div>
 
-                <div className="flex-1 overflow-x-auto">
+                <div className="overflow-x-auto">
                     <table className="w-full text-left border-collapse">
                         <thead>
                             <tr className="bg-neutral-50 text-neutral-500 text-sm border-b border-neutral-100">
@@ -298,7 +337,7 @@ export function AdminPelanggaran() {
                                 data.map((item, index) => (
                                     <tr key={item.id} className="hover:bg-neutral-50 transition-colors">
                                         <td className="px-6 py-4 whitespace-nowrap">{index + 1}</td>
-                                        <td className="px-6 py-4 whitespace-nowrap text-neutral-500">{item.tanggal}</td>
+                                        <td className="px-6 py-4 whitespace-nowrap text-neutral-500">{item.created_at ? item.created_at.slice(0, 10) : '-'}</td>
                                         <td className="px-6 py-4 font-medium text-neutral-900">{item.nama_siswa}</td>
                                         <td className="px-6 py-4 whitespace-nowrap text-neutral-500">{item.kelas}</td>
                                         <td className="px-6 py-4 text-neutral-800 max-w-xs truncate" title={item.nama_pelanggaran}>{item.nama_pelanggaran}</td>
@@ -329,9 +368,9 @@ export function AdminPelanggaran() {
 
             {/* Modal Popup for Add / Edit */}
             {isModalOpen && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
-                    <div className="bg-white rounded-2xl shadow-xl w-full max-w-lg overflow-hidden animate-in fade-in zoom-in duration-200 flex flex-col max-h-[90vh]">
-                        <div className="flex items-center justify-between px-6 py-4 border-b border-neutral-100 bg-neutral-50 shrink-0">
+                <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+                    <div className="bg-white rounded-2xl shadow-xl w-full max-w-lg mb-8 animate-in fade-in zoom-in duration-200 flex flex-col">
+                        <div className="flex items-center justify-between px-6 py-4 border-b border-neutral-100 bg-neutral-50 shrink-0 rounded-t-2xl">
                             <h3 className="text-lg font-semibold text-neutral-800">
                                 {modalMode === "add" ? "Input Catatan Pelanggaran" : "Edit Catatan Pelanggaran"}
                             </h3>
@@ -340,61 +379,57 @@ export function AdminPelanggaran() {
                             </button>
                         </div>
 
-                        <div className="overflow-y-auto p-6 flex-1">
+                        <div className="p-6 flex-1 overflow-visible">
                             <form id="pelanggaranForm" onSubmit={handleSubmit} className="space-y-4" autoComplete="off">
 
-                                <div className="space-y-1">
-                                    <label className="text-sm font-medium text-neutral-700">Tanggal Pelanggaran</label>
-                                    <input
-                                        type="date"
-                                        name="tanggal"
-                                        value={formData.tanggal}
-                                        onChange={handleFormChange}
-                                        required
-                                        className="w-full px-3 py-2 border border-neutral-200 rounded-lg text-sm bg-neutral-50 text-neutral-800 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all"
-                                    />
-                                </div>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div className="space-y-1">
+                                        <label className="text-sm font-medium text-neutral-700">Pilih Kelas</label>
+                                        <CustomSelect
+                                            name="kelas"
+                                            value={formData.kelas}
+                                            onChange={(e) => {
+                                                handleFormChange(e);
+                                                setFormData((prev: any) => ({ ...prev, id_siswa: "" }));
+                                            }}
+                                            placeholder="Pilih Kelas..."
+                                            options={kelasOptions}
+                                        />
+                                    </div>
 
-                                <div className="space-y-1">
-                                    <label className="text-sm font-medium text-neutral-700">Nama Siswa</label>
-                                    {/* Mock Select for Siswa */}
-                                    <CustomSelect
-                                        name="siswa_id"
-                                        value={formData.siswa_id}
-                                        onChange={handleFormChange}
-                                        placeholder="Cari / Pilih Siswa..."
-                                        options={[
-                                            { label: "Budi Santoso - X RPL", value: "1" },
-                                            { label: "Rina Amelia - XI TKJ", value: "2" },
-                                        ]}
-                                    />
+                                    <div className="space-y-1">
+                                        <label className="text-sm font-medium text-neutral-700">Nama Siswa</label>
+                                        <CustomSelect
+                                            name="id_siswa"
+                                            value={formData.id_siswa}
+                                            onChange={handleFormChange}
+                                            placeholder={formData.kelas ? "Pilih Siswa..." : "Pilih Kelas Dulu"}
+                                            options={formData.kelas ? siswaOptions.filter(s => s.kelas === formData.kelas) : []}
+                                        />
+                                    </div>
                                 </div>
 
                                 <div className="space-y-1">
                                     <label className="text-sm font-medium text-neutral-700">Jenis Pelanggaran</label>
                                     <CustomSelect
-                                        name="jenis_pelanggaran_id"
-                                        value={formData.jenis_pelanggaran_id}
+                                        name="id_jenis_pelanggaran"
+                                        value={formData.id_jenis_pelanggaran}
                                         onChange={handleFormChange}
                                         placeholder="Pilih Pelanggaran..."
-                                        options={[
-                                            { label: "Terlambat Masuk Sekolah - Poin 10", value: "1" },
-                                            { label: "Bolos Mata Pelajaran - Poin 20", value: "2" },
-                                            { label: "Berkelahi di Lingkungan Sekolah - Poin 50", value: "3" },
-                                        ]}
+                                        options={jenisOptions}
                                     />
                                 </div>
 
-                                <div className="space-y-1">
-                                    <label className="text-sm font-medium text-neutral-700">Keterangan / Catatan Tambahan (Opsional)</label>
+                                <div className="space-y-1 border-t border-neutral-100 pt-3 mt-1">
+                                    <label className="text-sm font-medium text-neutral-700">Keterangan Tambahan <span className="text-neutral-400 font-normal">(Opsional)</span></label>
                                     <textarea
                                         name="keterangan"
-                                        value={formData.keterangan}
+                                        value={formData.keterangan || ""}
                                         onChange={handleFormChange}
                                         rows={3}
-                                        placeholder="Contoh: Terlihat di kantin saat jam pelajaran matematika berlangsung."
+                                        placeholder="Keterangan detail pelanggaran (Jika kosong, akan otomatis disamakan dengan jenis pelanggaran)"
                                         className="w-full px-3 py-2 border border-neutral-200 rounded-lg text-sm bg-neutral-50 text-neutral-800 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all resize-none"
-                                    />
+                                    ></textarea>
                                 </div>
 
                             </form>

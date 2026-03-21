@@ -176,7 +176,7 @@ export default function AdminLayout({ children, title }: AdminLayoutProps) {
                 </div>
 
                 <div className="flex flex-1 overflow-hidden md:rounded-tl-3xl bg-slate-50 shadow-inner min-h-0">
-                    <div className="flex h-full w-full flex-col gap-4 overflow-y-auto p-4 sm:p-6 md:p-10 no-scrollbar [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+                    <div className="h-full w-full overflow-y-auto p-4 sm:p-6 md:p-10 content-wrapper">
                         {children}
                     </div>
                 </div>

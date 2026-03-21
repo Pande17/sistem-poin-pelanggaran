@@ -63,11 +63,21 @@ interface SiswaRecord {
     alamat: string;
     email: string;
     jenis_kelamin: string;
+    no_telp: string;
+    status: string;
+    id_ortuWali?: number | null;
+    ortu_nama?: string;
+    ortu_hubungan?: string;
+    ortu_no_telp?: string;
+    ortu_pekerjaan?: string;
+    ortu_alamat?: string;
     role: string;
+    total_poin?: number;
 }
 
 export function AdminSiswa() {
     const [data, setData] = useState<SiswaRecord[]>([]);
+    const [kelasData, setKelasData] = useState<any[]>([]);
     const [loading, setLoading] = useState<boolean>(true);
     const [error, setError] = useState<string | null>(null);
 
@@ -87,6 +97,14 @@ export function AdminSiswa() {
         alamat: "",
         email: "",
         jenis_kelamin: "",
+        no_telp: "",
+        status: "Aktif",
+        id_ortuWali: null,
+        ortu_nama: "",
+        ortu_hubungan: "",
+        ortu_no_telp: "",
+        ortu_pekerjaan: "",
+        ortu_alamat: "",
         role: "siswa"
     };
     const [formData, setFormData] = useState<any>(initialFormState);
@@ -117,9 +135,15 @@ export function AdminSiswa() {
         setFormData(initialFormState);
     };
 
-    const handleFormChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
+    const handleFormChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement> | { target: { name: string, value: string } }) => {
         const { name, value } = e.target;
-        setFormData((prev: any) => ({ ...prev, [name]: value }));
+        setFormData((prev: any) => {
+            const newData = { ...prev, [name]: value };
+            if (name === "jurusan") {
+                newData.kelas = ""; // Reset kelas when jurusan changes
+            }
+            return newData;
+        });
     };
 
     const handleSubmit = async (e: React.FormEvent) => {
@@ -175,9 +199,6 @@ export function AdminSiswa() {
     };
 
     const fetchSiswa = async () => {
-        // [SIMULASI DATA KOSONG]
-        // Blok fetch asli di-comment agar tabel selalu menampilkan UI Empty State terlebih dahulu.
-        /*
         try {
             setLoading(true);
             const token = localStorage.getItem("token") || "";
@@ -189,7 +210,7 @@ export function AdminSiswa() {
                 }
             });
             const result = await response.json();
-            
+
             if (response.ok && result.data) {
                 if (Array.isArray(result.data)) {
                     const activeRecords = result.data.filter((r: any) => !r.deleted_at);
@@ -205,15 +226,30 @@ export function AdminSiswa() {
         } finally {
             setLoading(false);
         }
-        */
-
-        setLoading(false);
-        setData([]); // Memaksa web menunjukkan state kosong (Empty State)
     };
 
     useEffect(() => {
         fetchSiswa();
+        fetchKelas();
     }, []);
+
+    const fetchKelas = async () => {
+        try {
+            const token = localStorage.getItem("token") || "";
+            const response = await fetch("http://localhost:8000/api/kelas", {
+                headers: { "Authorization": `Bearer ${token}` }
+            });
+            const result = await response.json();
+            if (response.ok) {
+                setKelasData(result.data || []);
+            }
+        } catch (error) {
+            console.error("Gagal mengambil data kelas:", error);
+        }
+    };
+
+    const uniqueJurusan = Array.from(new Set(kelasData.map((k: any) => k.jurusan))).map((j: any) => ({ label: j, value: j }));
+    const filteredKelas = kelasData.filter((k: any) => k.jurusan === formData.jurusan).map((k: any) => ({ label: k.nama_kelas, value: k.nama_kelas }));
 
     const handleDelete = (id: number) => {
         setDeleteConfirmId(id);
@@ -249,7 +285,7 @@ export function AdminSiswa() {
 
     return (
         <AdminLayout title="Data Siswa">
-            <div className="flex flex-col flex-1 bg-white rounded-xl border border-neutral-100 shadow-sm overflow-hidden mb-6">
+            <div className="bg-white rounded-xl border border-neutral-100 shadow-sm overflow-hidden mb-6">
                 <div className="p-6 border-b border-neutral-100 flex justify-between items-center bg-white">
                     <h2 className="text-lg font-semibold text-neutral-800">Daftar Siswa</h2>
                     <button
@@ -260,7 +296,7 @@ export function AdminSiswa() {
                     </button>
                 </div>
 
-                <div className="flex-1 overflow-x-auto">
+                <div className="overflow-x-auto">
                     <table className="w-full text-left border-collapse">
                         <thead>
                             <tr className="bg-neutral-50 text-neutral-500 text-sm border-b border-neutral-100">
@@ -268,8 +304,8 @@ export function AdminSiswa() {
                                 <th className="px-6 py-4 font-medium whitespace-nowrap">NIS</th>
                                 <th className="px-6 py-4 font-medium whitespace-nowrap">Nama Siswa</th>
                                 <th className="px-6 py-4 font-medium whitespace-nowrap">Kelas</th>
-                                <th className="px-6 py-4 font-medium whitespace-nowrap">Jurusan</th>
                                 <th className="px-6 py-4 font-medium whitespace-nowrap">Jenis Kelamin</th>
+                                <th className="px-6 py-4 font-medium text-center whitespace-nowrap">Poin</th>
                                 <th className="px-6 py-4 font-medium text-center whitespace-nowrap">Aksi</th>
                             </tr>
                         </thead>
@@ -315,10 +351,10 @@ export function AdminSiswa() {
                                         <td className="px-6 py-4 font-medium text-neutral-900 whitespace-nowrap">{item.nis}</td>
                                         <td className="px-6 py-4 whitespace-nowrap">{item.nama}</td>
                                         <td className="px-6 py-4 whitespace-nowrap">{item.kelas}</td>
-                                        <td className="px-6 py-4 whitespace-nowrap">{item.jurusan}</td>
                                         <td className="px-6 py-4 whitespace-nowrap">
                                             {item.jenis_kelamin === 'L' ? 'Laki-Laki' : item.jenis_kelamin === 'P' ? 'Perempuan' : '-'}
                                         </td>
+                                        <td className="px-6 py-4 whitespace-nowrap font-bold text-red-600 text-center">{item.total_poin || 0}</td>
                                         <td className="px-6 py-4 flex items-center justify-center gap-2">
                                             <button
                                                 onClick={() => openModal("edit", item)}
@@ -384,23 +420,35 @@ export function AdminSiswa() {
                                             className="w-full px-3 py-2 border border-neutral-200 rounded-lg text-sm bg-neutral-50 text-neutral-800 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all"
                                         />
                                     </div>
-                                </div>
-
-                                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                                     <div className="space-y-1">
-                                        <label className="text-sm font-medium text-neutral-700">Kelas</label>
-                                        <CustomSelect
-                                            name="kelas"
-                                            value={formData.kelas}
+                                        <label className="text-sm font-medium text-neutral-700">No. Telepon Siswa</label>
+                                        <input
+                                            type="text"
+                                            name="no_telp"
+                                            value={formData.no_telp}
                                             onChange={handleFormChange}
-                                            placeholder="Pilih Kelas"
+                                            required
+                                            placeholder="08xxxxxxxxxx"
+                                            className="w-full px-3 py-2 border border-neutral-200 rounded-lg text-sm bg-neutral-50 text-neutral-800 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all"
+                                        />
+                                    </div>
+                                    <div className="space-y-1">
+                                        <label className="text-sm font-medium text-neutral-700">Status</label>
+                                        <CustomSelect
+                                            name="status"
+                                            value={formData.status}
+                                            onChange={handleFormChange}
+                                            placeholder="Pilih Status"
                                             options={[
-                                                { label: "X", value: "X" },
-                                                { label: "XI", value: "XI" },
-                                                { label: "XII", value: "XII" },
+                                                { label: "Aktif", value: "Aktif" },
+                                                { label: "Lulus", value: "Lulus" },
+                                                { label: "Keluar", value: "Keluar" },
                                             ]}
                                         />
                                     </div>
+                                </div>
+
+                                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                                     <div className="space-y-1">
                                         <label className="text-sm font-medium text-neutral-700">Jurusan</label>
                                         <CustomSelect
@@ -408,14 +456,17 @@ export function AdminSiswa() {
                                             value={formData.jurusan}
                                             onChange={handleFormChange}
                                             placeholder="Pilih Jurusan"
-                                            options={[
-                                                { label: "RPL", value: "RPL" },
-                                                { label: "TKJ", value: "TKJ" },
-                                                { label: "MM", value: "MM" },
-                                                { label: "OTKP", value: "OTKP" },
-                                                { label: "AKL", value: "AKL" },
-                                                { label: "BDP", value: "BDP" },
-                                            ]}
+                                            options={uniqueJurusan}
+                                        />
+                                    </div>
+                                    <div className="space-y-1">
+                                        <label className="text-sm font-medium text-neutral-700">Kelas</label>
+                                        <CustomSelect
+                                            name="kelas"
+                                            value={formData.kelas}
+                                            onChange={handleFormChange}
+                                            placeholder={formData.jurusan ? "Pilih Kelas" : "Pilih Jurusan Dulu"}
+                                            options={filteredKelas}
                                         />
                                     </div>
                                     <div className="space-y-1">
@@ -455,6 +506,70 @@ export function AdminSiswa() {
                                         placeholder="Alamat lengkap tempat tinggal"
                                         className="w-full px-3 py-2 border border-neutral-200 rounded-lg text-sm bg-neutral-50 text-neutral-800 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all resize-none"
                                     />
+                                </div>
+
+                                <div className="pt-4 border-t border-neutral-100">
+                                    <p className="text-xs text-neutral-500 mb-3 uppercase tracking-wider font-semibold">Data Orang Tua / Wali</p>
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        <div className="space-y-1">
+                                            <label className="text-sm font-medium text-neutral-700">Nama Ortu/Wali</label>
+                                            <input
+                                                type="text"
+                                                name="ortu_nama"
+                                                value={formData.ortu_nama}
+                                                onChange={handleFormChange}
+                                                placeholder="Nama Orang Tua atau Wali"
+                                                className="w-full px-3 py-2 border border-neutral-200 rounded-lg text-sm bg-neutral-50 text-neutral-800 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all"
+                                            />
+                                        </div>
+                                        <div className="space-y-1">
+                                            <label className="text-sm font-medium text-neutral-700">Hubungan</label>
+                                            <CustomSelect
+                                                name="ortu_hubungan"
+                                                value={formData.ortu_hubungan}
+                                                onChange={handleFormChange}
+                                                placeholder="Pilih Hubungan"
+                                                options={[
+                                                    { label: "Ayah", value: "Ayah" },
+                                                    { label: "Ibu", value: "Ibu" },
+                                                    { label: "Wali", value: "Wali" },
+                                                ]}
+                                            />
+                                        </div>
+                                        <div className="space-y-1">
+                                            <label className="text-sm font-medium text-neutral-700">No. Telepon</label>
+                                            <input
+                                                type="text"
+                                                name="ortu_no_telp"
+                                                value={formData.ortu_no_telp}
+                                                onChange={handleFormChange}
+                                                placeholder="08xxxxxxxxxx"
+                                                className="w-full px-3 py-2 border border-neutral-200 rounded-lg text-sm bg-neutral-50 text-neutral-800 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all"
+                                            />
+                                        </div>
+                                        <div className="space-y-1">
+                                            <label className="text-sm font-medium text-neutral-700">Pekerjaan</label>
+                                            <input
+                                                type="text"
+                                                name="ortu_pekerjaan"
+                                                value={formData.ortu_pekerjaan}
+                                                onChange={handleFormChange}
+                                                placeholder="Pekerjaan"
+                                                className="w-full px-3 py-2 border border-neutral-200 rounded-lg text-sm bg-neutral-50 text-neutral-800 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all"
+                                            />
+                                        </div>
+                                        <div className="space-y-1 md:col-span-2">
+                                            <label className="text-sm font-medium text-neutral-700">Alamat Ortu/Wali</label>
+                                            <textarea
+                                                name="ortu_alamat"
+                                                value={formData.ortu_alamat}
+                                                onChange={handleFormChange}
+                                                rows={2}
+                                                placeholder="Alamat lengkap tempat tinggal orang tua/wali"
+                                                className="w-full px-3 py-2 border border-neutral-200 rounded-lg text-sm bg-neutral-50 text-neutral-800 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all resize-none"
+                                            />
+                                        </div>
+                                    </div>
                                 </div>
 
                                 <div className="pt-4 border-t border-neutral-100">

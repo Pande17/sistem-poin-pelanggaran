@@ -4,7 +4,9 @@ require_once 'helpers/responseHelper.php';
 require_once 'controllers/authController.php';
 require_once 'controllers/guruController.php';
 require_once 'controllers/siswaController.php';
-// require_once 'controllers/pelanggaranController.php';
+require_once 'controllers/jenisPelanggaran.php';
+require_once 'controllers/pelanggaranController.php';
+require_once 'controllers/kelasController.php';
 // require_once 'controllers/suratController.php';
 
 Cors::handle();
@@ -12,7 +14,9 @@ Cors::handle();
 $authController = new authController();
 $guruController = new GuruController();
 $siswaController = new SiswaController();
-// $pelanggaranController = new PelanggaranController();
+$jenisPelanggaranController = new JenisPelanggaranController();
+$pelanggaranController = new PelanggaranController();
+$kelasController = new KelasController();
 // $suratController = new SuratController();
 
 // Handle preflight request
@@ -41,6 +45,10 @@ elseif (is_numeric($endpoint) && isset($segments[count($segments) - 2]) && $segm
     $_GET['id'] = $endpoint;
     $endpoint = 'siswa';
 }
+elseif (is_numeric($endpoint) && isset($segments[count($segments) - 2]) && $segments[count($segments) - 2] === 'jenis-pelanggaran') {
+    $_GET['id'] = $endpoint;
+    $endpoint = 'jenis-pelanggaran';
+}
 elseif (is_numeric($endpoint) && isset($segments[count($segments) - 2]) && $segments[count($segments) - 2] === 'pelanggaran') {
     $_GET['id'] = $endpoint;
     $endpoint = 'pelanggaran';
@@ -48,6 +56,10 @@ elseif (is_numeric($endpoint) && isset($segments[count($segments) - 2]) && $segm
 elseif (is_numeric($endpoint) && isset($segments[count($segments) - 2]) && $segments[count($segments) - 2] === 'surat') {
     $_GET['id'] = $endpoint;
     $endpoint = 'surat';
+}
+elseif (is_numeric($endpoint) && isset($segments[count($segments) - 2]) && $segments[count($segments) - 2] === 'kelas') {
+    $_GET['id'] = $endpoint;
+    $endpoint = 'kelas';
 }
 
 // Route handling
@@ -102,6 +114,26 @@ switch ($endpoint) {
         }
         break;
 
+    case 'jenis-pelanggaran':
+        switch ($_SERVER['REQUEST_METHOD']) {
+            case 'GET':
+                $jenisPelanggaranController->getJenisPelanggaran();
+                break;
+            case 'POST':
+                $jenisPelanggaranController->createJenisPelanggaran();
+                break;
+            case 'PUT':
+                $jenisPelanggaranController->updateJenisPelanggaran();
+                break;
+            case 'DELETE':
+                $jenisPelanggaranController->deleteJenisPelanggaran();
+                break;
+            default:
+                // Method Not Allowed
+                BadRequest(null, 'Method Not Allowed');
+        }
+        break;
+
     case 'pelanggaran':
         switch ($_SERVER['REQUEST_METHOD']) {
             case 'GET':
@@ -135,6 +167,26 @@ switch ($endpoint) {
                 break;
             case 'DELETE':
                 $suratController->deleteSurat();
+                break;
+            default:
+                // Method Not Allowed
+                BadRequest(null, 'Method Not Allowed');
+        }
+        break;
+
+    case 'kelas':
+        switch ($_SERVER['REQUEST_METHOD']) {
+            case 'GET':
+                $kelasController->getKelas();
+                break;
+            case 'POST':
+                $kelasController->createKelas();
+                break;
+            case 'PUT':
+                $kelasController->updateKelas();
+                break;
+            case 'DELETE':
+                $kelasController->deleteKelas();
                 break;
             default:
                 // Method Not Allowed

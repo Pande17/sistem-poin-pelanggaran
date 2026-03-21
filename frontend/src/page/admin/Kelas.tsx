@@ -6,8 +6,12 @@ import { cn } from "@/lib/utils";
 
 interface KelasRecord {
     id: number;
-    nama_kelas: string;
-    wali_kelas: string;
+    tingkat: string;
+    jurusan: string;
+    kelas: string;
+    wali_kelas: number | string;
+    wali_kelas_nama: string;
+    nama_kelas?: string;
 }
 
 export function AdminKelas() {
@@ -22,9 +26,12 @@ export function AdminKelas() {
     // Form state
     const initialFormState = {
         id: 0,
-        nama_kelas: "",
+        tingkat: "",
+        jurusan: "",
+        kelas: "",
         wali_kelas: "",
     };
+    const [guruData, setGuruData] = useState<any[]>([]);
     const [formData, setFormData] = useState<any>(initialFormState);
     const [formLoading, setFormLoading] = useState(false);
 
@@ -100,13 +107,43 @@ export function AdminKelas() {
     };
 
     const fetchKelas = async () => {
-        // [SIMULASI DATA KOSONG]
-        setLoading(false);
-        setData([]);
+        setLoading(true);
+        try {
+            const token = localStorage.getItem("token") || "";
+            const response = await fetch("http://localhost:8000/api/kelas", {
+                headers: { "Authorization": `Bearer ${token}` }
+            });
+            const result = await response.json();
+            if (response.ok) {
+                setData(result.data || []);
+            } else {
+                showNotification("error", result.message || "Gagal mengambil data kelas");
+            }
+        } catch (error) {
+            showNotification("error", "Terjadi kesalahan koneksi");
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const fetchGuru = async () => {
+        try {
+            const token = localStorage.getItem("token") || "";
+            const response = await fetch("http://localhost:8000/api/guru", {
+                headers: { "Authorization": `Bearer ${token}` }
+            });
+            const result = await response.json();
+            if (response.ok) {
+                setGuruData(result.data || []);
+            }
+        } catch (error) {
+            console.error("Gagal mengambil data guru:", error);
+        }
     };
 
     useEffect(() => {
         fetchKelas();
+        fetchGuru();
     }, []);
 
     const handleDelete = (id: number) => {
@@ -143,7 +180,7 @@ export function AdminKelas() {
 
     return (
         <AdminLayout title="Data Kelas">
-            <div className="flex flex-col flex-1 bg-white rounded-xl border border-neutral-100 shadow-sm overflow-hidden mb-6">
+            <div className="bg-white rounded-xl border border-neutral-100 shadow-sm overflow-hidden mb-6">
                 <div className="p-6 border-b border-neutral-100 flex justify-between items-center bg-white">
                     <h2 className="text-lg font-semibold text-neutral-800">Daftar Kelas</h2>
                     <button
@@ -154,7 +191,7 @@ export function AdminKelas() {
                     </button>
                 </div>
 
-                <div className="flex-1 overflow-x-auto">
+                <div className="overflow-x-auto">
                     <table className="w-full text-left border-collapse">
                         <thead>
                             <tr className="bg-neutral-50 text-neutral-500 text-sm border-b border-neutral-100">
@@ -204,7 +241,7 @@ export function AdminKelas() {
                                     <tr key={item.id} className="hover:bg-neutral-50 transition-colors">
                                         <td className="px-6 py-4 whitespace-nowrap">{index + 1}</td>
                                         <td className="px-6 py-4 font-medium text-neutral-900 whitespace-nowrap">{item.nama_kelas}</td>
-                                        <td className="px-6 py-4 whitespace-nowrap">{item.wali_kelas}</td>
+                                        <td className="px-6 py-4 whitespace-nowrap">{item.wali_kelas_nama || "-"}</td>
                                         <td className="px-6 py-4 flex items-center justify-center gap-2">
                                             <button
                                                 onClick={() => openModal("edit", item)}
@@ -245,28 +282,57 @@ export function AdminKelas() {
                         <div className="overflow-y-auto p-6 flex-1">
                             <form id="kelasForm" onSubmit={handleSubmit} className="space-y-4" autoComplete="off">
                                 <div className="space-y-1">
-                                    <label className="text-sm font-medium text-neutral-700">Nama Kelas</label>
-                                    <input
-                                        type="text"
-                                        name="nama_kelas"
-                                        value={formData.nama_kelas}
+                                    <label className="text-sm font-medium text-neutral-700">Tingkat</label>
+                                    <select
+                                        name="tingkat"
+                                        value={formData.tingkat}
                                         onChange={handleFormChange}
                                         required
-                                        placeholder="Misal: X RPL 1"
+                                        className="w-full px-3 py-2 border border-neutral-200 rounded-lg text-sm bg-neutral-50 text-neutral-800 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all"
+                                    >
+                                        <option value="">Pilih Tingkat</option>
+                                        <option value="X">X (10)</option>
+                                        <option value="XI">XI (11)</option>
+                                        <option value="XII">XII (12)</option>
+                                    </select>
+                                </div>
+                                <div className="space-y-1">
+                                    <label className="text-sm font-medium text-neutral-700">Jurusan</label>
+                                    <input
+                                        type="text"
+                                        name="jurusan"
+                                        value={formData.jurusan}
+                                        onChange={handleFormChange}
+                                        required
+                                        placeholder="Misal: RPL"
+                                        className="w-full px-3 py-2 border border-neutral-200 rounded-lg text-sm bg-neutral-50 text-neutral-800 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all"
+                                    />
+                                </div>
+                                <div className="space-y-1">
+                                    <label className="text-sm font-medium text-neutral-700">Kelas</label>
+                                    <input
+                                        type="text"
+                                        name="kelas"
+                                        value={formData.kelas}
+                                        onChange={handleFormChange}
+                                        required
+                                        placeholder="Misal: 1"
                                         className="w-full px-3 py-2 border border-neutral-200 rounded-lg text-sm bg-neutral-50 text-neutral-800 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all"
                                     />
                                 </div>
                                 <div className="space-y-1">
                                     <label className="text-sm font-medium text-neutral-700">Wali Kelas</label>
-                                    <input
-                                        type="text"
+                                    <select
                                         name="wali_kelas"
                                         value={formData.wali_kelas}
                                         onChange={handleFormChange}
-                                        required
-                                        placeholder="Nama Wali Kelas"
                                         className="w-full px-3 py-2 border border-neutral-200 rounded-lg text-sm bg-neutral-50 text-neutral-800 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all"
-                                    />
+                                    >
+                                        <option value="">-- Pilih Wali Kelas --</option>
+                                        {guruData.map((guru) => (
+                                            <option key={guru.id} value={guru.id}>{guru.nama}</option>
+                                        ))}
+                                    </select>
                                 </div>
                             </form>
                         </div>
