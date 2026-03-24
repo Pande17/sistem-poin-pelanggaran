@@ -9,6 +9,8 @@ services:
             # - ./backend/000-default.conf:/etc/apache2/sites-available/000-default.conf
         ports:
             - '8000:8000'
+        environment:
+            - TZ=Asia/Singapore
         depends_on:
             - db
 
@@ -24,6 +26,7 @@ services:
             - '5173:5173'
         environment:
             - CHOKIDAR_USEPOLLING=true
+            - TZ=Asia/Singapore
         command: npm run dev -- --host
     db:
         image: mysql:8.0
@@ -31,8 +34,10 @@ services:
         container_name: mysql_db
         restart: always
         environment:
-            MYSQL_ROOT_PASSWORD: root
-            MYSQL_DATABASE: poin_pelanggaran_siswa
+            - MYSQL_ROOT_PASSWORD=root
+            - MYSQL_DATABASE=poin_pelanggaran_siswa
+            - TZ=Asia/Singapore
+        command: --default-time-zone='+08:00'
         ports:
             - '3306:3306'
         volumes:
@@ -46,9 +51,10 @@ services:
         ports:
             - '8080:80'
         environment:
-            PMA_HOST: db
-            PMA_USER: root
-            PMA_PASSWORD: root
+            - PMA_HOST=db
+            - PMA_USER=root
+            - PMA_PASSWORD=root
+            - TZ=Asia/Singapore
         depends_on:
             - db
 
