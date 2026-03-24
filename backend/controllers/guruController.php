@@ -110,15 +110,17 @@ class GuruController
                 return;
             }
 
-            // Hash password sebelum disimpan
-            $hashedPassword = password_hash($password, PASSWORD_DEFAULT);
+            // Hash password jika tidak kosong
+            $hashedPassword = !empty($password) ? password_hash($password, PASSWORD_DEFAULT) : "";
 
-            // Simpan data guru menggunakan model
-            $result = $this->model->updateGuru($id, $username, $password, $nama, $kodeGuru, $email, $jenisKelamin, $role);
+            // Simpan data guru menggunakan model, pastikan mengirim string dari $hashedPassword
+            $result = $this->model->updateGuru($id, $username, $hashedPassword, $nama, $kodeGuru, $email, $jenisKelamin, $role);
 
             if ($result) {
                 // Return data dengan password yang sudah di-hash
-                $data['password'] = $hashedPassword;
+                if (!empty($password)) {
+                    $data['password'] = $hashedPassword;
+                }
                 Success($data, 'Data Guru berhasil diupdate');
             }
             else {
