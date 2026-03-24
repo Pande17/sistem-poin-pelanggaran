@@ -396,7 +396,7 @@ export function AdminGuru() {
                                 <th className="px-6 py-4 font-medium">No</th>
                                 <th className="px-6 py-4 font-medium">Kode Guru</th>
                                 <th className="px-6 py-4 font-medium">Nama</th>
-                                <th className="px-6 py-4 font-medium">Email</th>
+                                <th className="px-6 py-4 font-medium">Username</th>
                                 <th className="px-6 py-4 font-medium">Jenis Kelamin</th>
                                 <th className="px-6 py-4 font-medium">Role</th>
                                 <th className="px-6 py-4 font-medium text-center">Aksi</th>
@@ -445,7 +445,7 @@ export function AdminGuru() {
                                             {item.kode_guru?.startsWith('0021.') ? item.kode_guru : (item.kode_guru ? `0021.${item.kode_guru}` : '-')}
                                         </td>
                                         <td className="px-6 py-4">{item.nama}</td>
-                                        <td className="px-6 py-4">{item.email}</td>
+                                        <td className="px-6 py-4">{item.username}</td>
                                         <td className="px-6 py-4">
                                             {item.jenis_kelamin === 'L' ? 'Laki-Laki' : item.jenis_kelamin === 'P' ? 'Perempuan' : '-'}
                                         </td>
