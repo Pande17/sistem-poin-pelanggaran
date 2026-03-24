@@ -9,9 +9,36 @@ class GuruModel {
     }
 
     public function getAllGuru() {
-        $stmt = $this->db->prepare("SELECT * FROM guru");
+        $stmt = $this->db->prepare("SELECT * FROM guru ORDER BY kode_guru ASC");
         $stmt->execute();
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    public function checkDuplicateKode($kodeGuru, $excludeId = null) {
+        $sql = "SELECT id FROM guru WHERE kode_guru = :kode_guru AND deleted_at IS NULL";
+        if ($excludeId !== null) {
+            $sql .= " AND id != :id";
+        }
+        $stmt = $this->db->prepare($sql);
+        $stmt->bindParam(':kode_guru', $kodeGuru);
+        if ($excludeId !== null) {
+            $stmt->bindParam(':id', $excludeId);
+        }
+        $stmt->execute();
+        return $stmt->fetch(PDO::FETCH_ASSOC);
+    }
+
+    public function checkKepalaSekolahExists($excludeId = null) {
+        $sql = "SELECT id FROM guru WHERE role = 'kepala sekolah' AND deleted_at IS NULL";
+        if ($excludeId !== null) {
+            $sql .= " AND id != :id";
+        }
+        $stmt = $this->db->prepare($sql);
+        if ($excludeId !== null) {
+            $stmt->bindParam(':id', $excludeId);
+        }
+        $stmt->execute();
+        return $stmt->fetch(PDO::FETCH_ASSOC);
     }
 
     public function getGuruById($id) {

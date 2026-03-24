@@ -66,7 +66,7 @@ function Login() {
 				<CardHeader className="space-y-4 px-5 pt-8 sm:px-8 sm:pt-10 text-center">
 					<div className="flex justify-center mb-2">
 						<div className="flex items-center space-x-2">
-							<div className="h-8 w-8 shrink-0 rounded-tl-xl rounded-br-xl bg-white" />
+							<img src="../src/assets/gradepoint.png" alt="Logo" className="h-8 w-8 shrink-0 rounded-tl-xl rounded-br-xl" />
 							<motion.span
 								initial={{ opacity: 0 }}
 								animate={{ opacity: 1 }}

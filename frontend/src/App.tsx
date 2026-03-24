@@ -18,7 +18,7 @@ import SiswaDashboard from "@/page/siswa/Dashboard"
 import DataSiswa from "@/page/siswa/Datadiri"
 
 // BK Path Routes
-import BKDasboard from "@/page/bk/Dashboard"
+// import BKDasboard from "@/page/bk/Dashboard"
 
 // Protected Route
 import ProtectedRoute from "@/utils/ProtectedRoute"
@@ -33,54 +33,54 @@ function App() {
 
       {/* Admin Path Routes */}
       <Route path="/admin/dashboard" element={
-        <ProtectedRoute roles={["admin"]}>
+        <ProtectedRoute roles={["admin", "kepala sekolah", "wakasek"]}>
           <AdminDashboard />
         </ProtectedRoute>}
       />
       <Route path="/admin/pelanggaran" element={
-        <ProtectedRoute roles={["admin"]}>
+        <ProtectedRoute roles={["admin", "wakasek", "kepala sekolah"]}>
           <AdminPelanggaran />
         </ProtectedRoute>}
       />
       <Route path="/admin/siswa" element={
-        <ProtectedRoute roles={["admin"]}>
+        <ProtectedRoute roles={["admin", "wakasek", "kepala sekolah"]}>
           <AdminSiswa />
         </ProtectedRoute>}
       />
       <Route path="/admin/jenis-pelanggaran" element={
-        <ProtectedRoute roles={["admin"]}>
+        <ProtectedRoute roles={["admin", "wakasek", "kepala sekolah"]}>
           <AdminJenisPelanggaran />
         </ProtectedRoute>}
       />
       <Route path="/admin/guru" element={
-        <ProtectedRoute roles={["admin"]}>
+        <ProtectedRoute roles={["admin", "wakasek", "kepala sekolah"]}>
           <AdminGuru />
         </ProtectedRoute>}
       />
       <Route path="/admin/kelas" element={
-        <ProtectedRoute roles={["admin"]}>
+        <ProtectedRoute roles={["admin", "wakasek", "kepala sekolah"]}>
           <AdminKelas />
         </ProtectedRoute>}
       />
       <Route path="/admin/cetak-surat" element={
-        <ProtectedRoute roles={["admin"]}>
+        <ProtectedRoute roles={["admin", "wakasek", "kepala sekolah"]}>
           <AdminCetakSurat />
         </ProtectedRoute>}
       />
 
       {/* Guru Path Routes */}
       <Route path="/guru/dashboard" element={
-        <ProtectedRoute roles={["guru"]}>
+        <ProtectedRoute roles={["guru mapel"]}>
           <GuruDashboard />
         </ProtectedRoute>}
       />
 
-      {/* Siswa Path Routes */}
-      <Route path="/bk/dashboard" element={
+      {/* BK Path Routes */}
+      {/* <Route path="/bk/dashboard" element={
         <ProtectedRoute roles={["bk"]}>
           <BKDasboard />
         </ProtectedRoute>}
-      />
+      /> */}
 
       {/* Siswa Path Routes */}
       <Route path="/siswa/dashboard" element={

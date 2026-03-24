@@ -44,6 +44,24 @@ class GuruController
             $email = $data['email'];
             $role = $data['role'];
 
+            // Validasi format kode guru
+            if (!preg_match('/^0021\.\d{3}$/', $kodeGuru)) {
+                Conflict(null, "Format Kode Guru tidak valid! Harus berformat 0021.xxx (xxx adalah 3 digit angka).");
+                return;
+            }
+
+            // Validasi duplicate kode guru
+            if ($this->model->checkDuplicateKode($kodeGuru)) {
+                Conflict(null, "Kode Guru $kodeGuru sudah digunakan! Silakan gunakan kode lain.");
+                return;
+            }
+
+            // Validasi kepala sekolah
+            if (strtolower($role) === 'kepala sekolah' && $this->model->checkKepalaSekolahExists()) {
+                Conflict(null, "Jabatan Kepala Sekolah hanya boleh satu orang! Kepala Sekolah sudah terdaftar.");
+                return;
+            }
+
             // Hash password sebelum disimpan
             $hashedPassword = password_hash($password, PASSWORD_DEFAULT);
 
@@ -73,6 +91,24 @@ class GuruController
             $jenisKelamin = $data['jenis_kelamin'];
             $email = $data['email'];
             $role = $data['role'];
+
+            // Validasi format kode guru
+            if (!preg_match('/^0021\.\d{3}$/', $kodeGuru)) {
+                Conflict(null, "Format Kode Guru tidak valid! Harus berformat 0021.xxx (xxx adalah 3 digit angka).");
+                return;
+            }
+
+            // Validasi duplicate kode guru
+            if ($this->model->checkDuplicateKode($kodeGuru, $id)) {
+                Conflict(null, "Kode Guru $kodeGuru sudah digunakan! Silakan gunakan kode lain.");
+                return;
+            }
+
+            // Validasi kepala sekolah
+            if (strtolower($role) === 'kepala sekolah' && $this->model->checkKepalaSekolahExists($id)) {
+                Conflict(null, "Jabatan Kepala Sekolah hanya boleh satu orang! Kepala Sekolah sudah terdaftar.");
+                return;
+            }
 
             // Hash password sebelum disimpan
             $hashedPassword = password_hash($password, PASSWORD_DEFAULT);

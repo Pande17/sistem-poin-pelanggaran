@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import AdminLayout from "@/layouts/AdminLayout";
-import { IconEdit, IconTrash, IconX, IconChevronDown, IconAlertCircle, IconInbox, IconLoader2, IconCheck, IconInfoCircle, IconTrashX } from "@tabler/icons-react";
+import { IconEdit, IconTrash, IconX, IconChevronDown, IconAlertCircle, IconInbox, IconLoader2, IconCheck, IconInfoCircle, IconTrashX, IconSearch, IconFilter, IconArrowsSort } from "@tabler/icons-react";
 import { motion, AnimatePresence } from "motion/react";
 import { cn } from "@/lib/utils";
 
@@ -14,7 +14,7 @@ function CustomSelect({ value, onChange, options, placeholder, name }: { value: 
                 onClick={() => setOpen(!open)}
                 className="w-full px-3 py-2 border border-neutral-200 rounded-lg text-sm bg-white cursor-pointer flex justify-between items-center focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
             >
-                <span className={selected ? "text-neutral-800" : "text-neutral-400"}>
+                <span className={cn("truncate pr-2 block w-full", selected ? "text-neutral-800" : "text-neutral-400")}>
                     {selected ? selected.label : placeholder}
                 </span>
                 <IconChevronDown className={cn("h-4 w-4 text-neutral-400 transition-transform duration-200", open && "rotate-180")} />
@@ -73,6 +73,19 @@ export function AdminGuru() {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [modalMode, setModalMode] = useState<"add" | "edit">("add");
 
+    // Filter and Search state
+    const [searchQuery, setSearchQuery] = useState("");
+    const [filterRole, setFilterRole] = useState("");
+    const [filterGender, setFilterGender] = useState("");
+    const [sortOrder, setSortOrder] = useState(""); // "" | "asc" | "desc"
+
+    const handleFilterChange = (e: any) => {
+        const { name, value } = e.target;
+        if (name === "filterRole") setFilterRole(value);
+        if (name === "filterGender") setFilterGender(value);
+        if (name === "sortOrder") setSortOrder(value);
+    };
+
     // Form state
     const initialFormState = {
         id: 0,
@@ -100,12 +113,14 @@ export function AdminGuru() {
     const openModal = (mode: "add" | "edit", guru?: GuruRecord) => {
         setModalMode(mode);
         if (mode === "edit" && guru) {
-            setFormData({ ...guru, password: "" }); // Reset password field for edit
+            let formattedKode = guru.kode_guru || "";
+            if (formattedKode && !formattedKode.startsWith("0021.")) {
+                formattedKode = `0021.${formattedKode}`;
+            }
+            setFormData({ ...guru, kode_guru: formattedKode, password: "" }); // Reset password field for edit
         } else {
-            // Generate a random code for guru (e.g. GURU-XXXX) as default layout
-            // or let the user type one since DB seems to need it from frontend
-            const randomCode = `GURU-${Math.floor(1000 + Math.random() * 9000)}`;
-            setFormData({ ...initialFormState, kode_guru: randomCode });
+            // Set initial kode_guru explicitly to 0021. prefix
+            setFormData({ ...initialFormState, kode_guru: "0021." });
         }
         setIsModalOpen(true);
     };
@@ -128,6 +143,32 @@ export function AdminGuru() {
             showNotification("error", "Password is required for new Guru");
             return;
         }
+
+        // Validasi format kode_guru
+        if (!/^0021\.\d{3}$/.test(payload.kode_guru)) {
+            showNotification("error", "Kode Guru tidak valid, harus 3 angka lengkap (contoh: 0021.123)!");
+            return;
+        }
+
+        const isEdit = modalMode === "edit";
+        const normalizeKode = (k: string) => k?.startsWith("0021.") ? k : `0021.${k}`;
+
+        // Cek duplicate kode_guru lokal
+        const isKodeGuruTaken = data.some((item) => normalizeKode(item.kode_guru) === payload.kode_guru && (isEdit ? item.id !== payload.id : true));
+        if (isKodeGuruTaken) {
+            showNotification("error", `Kode Guru ${payload.kode_guru} sudah digunakan oleh guru lain!`);
+            return;
+        }
+
+        // Cek duplicate kepala sekolah lokal
+        if (payload.role === "kepala sekolah") {
+            const isKepsekTaken = data.some((item) => item.role === "kepala sekolah" && (isEdit ? item.id !== payload.id : true));
+            if (isKepsekTaken) {
+                showNotification("error", "Jabatan Kepala Sekolah hanya boleh satu orang!");
+                return;
+            }
+        }
+
         if (!payload.jenis_kelamin || !payload.role) {
             showNotification("error", "Mohon pilih Jenis Kelamin dan Role!");
             return;
@@ -240,6 +281,26 @@ export function AdminGuru() {
         }
     };
 
+    const filteredData = data.filter(item => {
+        const matchSearch = item.nama.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            (item.kode_guru && item.kode_guru.toLowerCase().includes(searchQuery.toLowerCase()));
+        const matchRole = filterRole ? item.role === filterRole : true;
+        const matchGender = filterGender ? item.jenis_kelamin === filterGender : true;
+        return matchSearch && matchRole && matchGender;
+    });
+
+    const sortedData = [...filteredData].sort((a, b) => {
+        if (!sortOrder) return 0;
+        const kodeA = a.kode_guru || "";
+        const kodeB = b.kode_guru || "";
+
+        if (sortOrder === "asc") {
+            return kodeA.localeCompare(kodeB);
+        } else {
+            return kodeB.localeCompare(kodeA);
+        }
+    });
+
     return (
         <AdminLayout title="Data Guru">
             <div className="flex flex-col flex-1 bg-white rounded-xl border border-neutral-100 shadow-sm overflow-hidden">
@@ -253,7 +314,82 @@ export function AdminGuru() {
                     </button>
                 </div>
 
-                <div className="flex-1 overflow-x-auto">
+                <div className="p-4 border-b border-neutral-100 bg-neutral-50/50">
+                    <div className="flex flex-col lg:flex-row gap-4 justify-between items-start lg:items-center w-full">
+                        {/* Grup Filter (Kiri) */}
+                        <div className="flex flex-col sm:flex-row flex-wrap gap-3 w-full lg:w-auto">
+                            {/* Sort Code */}
+                            <div className="relative w-full sm:w-[190px]">
+                                <IconArrowsSort className="h-4 w-4 absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400 z-10" />
+                                <div className="pl-7">
+                                    <CustomSelect
+                                        name="sortOrder"
+                                        value={sortOrder}
+                                        onChange={handleFilterChange}
+                                        placeholder="Urutkan"
+                                        options={[
+                                            { label: "Urutkan (Default)", value: "" },
+                                            { label: "Kode: Terendah", value: "asc" },
+                                            { label: "Kode: Tertinggi", value: "desc" }
+                                        ]}
+                                    />
+                                </div>
+                            </div>
+
+                            {/* Filter Role */}
+                            <div className="relative w-full sm:w-[190px]">
+                                <IconFilter className="h-4 w-4 absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400 z-10" />
+                                <div className="pl-7">
+                                    <CustomSelect
+                                        name="filterRole"
+                                        value={filterRole}
+                                        onChange={handleFilterChange}
+                                        placeholder="Semua Role"
+                                        options={[
+                                            { label: "Semua Role", value: "" },
+                                            { label: "Admin", value: "admin" },
+                                            { label: "Kepala Sekolah", value: "kepala sekolah" },
+                                            { label: "Wakasek", value: "wakasek" },
+                                            { label: "Guru Mapel", value: "guru mapel" }
+                                        ]}
+                                    />
+                                </div>
+                            </div>
+
+                            {/* Filter Gender */}
+                            <div className="relative w-full sm:w-[170px]">
+                                <IconFilter className="h-4 w-4 absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400 z-10" />
+                                <div className="pl-7">
+                                    <CustomSelect
+                                        name="filterGender"
+                                        value={filterGender}
+                                        onChange={handleFilterChange}
+                                        placeholder="Semua Gender"
+                                        options={[
+                                            { label: "Semua Gender", value: "" },
+                                            { label: "Laki-Laki", value: "L" },
+                                            { label: "Perempuan", value: "P" },
+                                        ]}
+                                    />
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Grup Search (Kanan) */}
+                        <div className="relative w-full lg:max-w-xs group">
+                            <IconSearch className="h-4 w-4 absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400 group-focus-within:text-blue-500 transition-colors" />
+                            <input
+                                type="text"
+                                placeholder="Cari Guru..."
+                                value={searchQuery}
+                                onChange={(e) => setSearchQuery(e.target.value)}
+                                className="w-full pl-9 pr-4 py-2 text-sm border border-neutral-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all bg-white shadow-sm"
+                            />
+                        </div>
+                    </div>
+                </div>
+
+                <div className="flex-1 overflow-x-auto min-h-[400px]">
                     <table className="w-full text-left border-collapse">
                         <thead>
                             <tr className="bg-neutral-50 text-neutral-500 text-sm border-b border-neutral-100">
@@ -285,7 +421,7 @@ export function AdminGuru() {
                                         </div>
                                     </td>
                                 </tr>
-                            ) : data.length === 0 ? (
+                            ) : sortedData.length === 0 ? (
                                 <tr>
                                     <td colSpan={7} className="px-6 py-16 text-center h-64 bg-neutral-50/50">
                                         <div className="flex flex-col items-center justify-center space-y-4">
@@ -293,19 +429,21 @@ export function AdminGuru() {
                                                 <IconInbox className="h-12 w-12 text-neutral-400" />
                                             </div>
                                             <div className="space-y-1">
-                                                <h3 className="text-neutral-800 font-semibold text-lg">Belum ada data guru</h3>
+                                                <h3 className="text-neutral-800 font-semibold text-lg">Tidak ada data ditemukan</h3>
                                                 <p className="text-neutral-500 text-sm max-w-sm mx-auto">
-                                                    Klik tombol "Tambah Guru" di sudut kanan atas untuk mulai memasukkan data guru baru ke dalam sistem.
+                                                    Data guru tidak tersedia atau tidak ada yang cocok dengan pencarian dan filter Anda.
                                                 </p>
                                             </div>
                                         </div>
                                     </td>
                                 </tr>
                             ) : (
-                                data.map((item, index) => (
+                                sortedData.map((item, index) => (
                                     <tr key={item.id} className="hover:bg-neutral-50 transition-colors">
                                         <td className="px-6 py-4">{index + 1}</td>
-                                        <td className="px-6 py-4 font-medium text-neutral-900">{item.kode_guru}</td>
+                                        <td className="px-6 py-4 font-medium text-neutral-900">
+                                            {item.kode_guru?.startsWith('0021.') ? item.kode_guru : (item.kode_guru ? `0021.${item.kode_guru}` : '-')}
+                                        </td>
                                         <td className="px-6 py-4">{item.nama}</td>
                                         <td className="px-6 py-4">{item.email}</td>
                                         <td className="px-6 py-4">
@@ -354,14 +492,32 @@ export function AdminGuru() {
 
                             <div className="space-y-1">
                                 <label className="text-sm font-medium text-neutral-700">Kode Guru</label>
-                                <input
-                                    type="text"
-                                    name="kode_guru"
-                                    value={formData.kode_guru}
-                                    className="w-full px-3 py-2 border border-neutral-200 rounded-lg bg-neutral-100 text-neutral-500 text-sm outline-none"
-                                    readOnly
-                                />
-                                <p className="text-xs text-neutral-400 mt-1">Kode digenerate otomatis</p>
+                                <div className={cn(
+                                    "flex flex-row items-stretch border rounded-lg overflow-hidden transition-all text-sm",
+                                    modalMode === "edit" ? "bg-neutral-100 border-neutral-200" : "bg-white border-neutral-200 focus-within:ring-2 focus-within:ring-blue-500/20 focus-within:border-blue-500"
+                                )}>
+                                    <div className="flex items-center justify-center px-3 bg-neutral-100 text-neutral-600 border-r border-neutral-200 select-none">
+                                        0021.
+                                    </div>
+                                    <input
+                                        type="text"
+                                        name="kode_guru"
+                                        value={formData.kode_guru?.replace(/^0021\./, '') || ''}
+                                        onChange={(e) => {
+                                            const val = e.target.value.replace(/\D/g, '').slice(0, 3);
+                                            setFormData((prev: any) => ({ ...prev, kode_guru: `0021.${val}` }));
+                                        }}
+                                        required
+                                        placeholder="001"
+                                        maxLength={3}
+                                        readOnly={modalMode === "edit"}
+                                        className={cn(
+                                            "w-full px-3 py-2 outline-none",
+                                            modalMode === "edit" ? "bg-neutral-100 text-neutral-500 cursor-not-allowed" : "bg-transparent text-neutral-800"
+                                        )}
+                                    />
+                                </div>
+                                <p className="text-xs text-neutral-400 mt-1">Masukkan 3 angka (contoh: untuk input 001 maka hasil kode adalah 0021.001)</p>
                             </div>
 
                             <div className="space-y-1">
@@ -399,9 +555,10 @@ export function AdminGuru() {
                                         onChange={handleFormChange}
                                         placeholder="Pilih Role"
                                         options={[
-                                            { label: "ADMIN", value: "admin" },
-                                            { label: "BK", value: "bk" },
-                                            { label: "GURU", value: "guru" }
+                                            { label: "Admin", value: "admin" },
+                                            { label: "Kepala Sekolah", value: "kepala sekolah" },
+                                            { label: "Wakasek", value: "wakasek" },
+                                            { label: "Guru Mapel", value: "guru mapel" }
                                         ]}
                                     />
                                 </div>
