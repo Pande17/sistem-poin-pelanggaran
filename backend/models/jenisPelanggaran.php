@@ -12,7 +12,7 @@ class JenisPelanggaranModel
 
     public function getAllJenisPelanggaran()
     {
-        $stmt = $this->db->prepare("SELECT * FROM jenis_pelanggaran WHERE deleted_at IS NULL");
+        $stmt = $this->db->prepare("SELECT * FROM jenis_pelanggaran WHERE deleted_at IS NULL ORDER BY poin ASC");
         $stmt->execute();
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }

@@ -304,7 +304,7 @@ export function AdminJenisPelanggaran() {
                                             value={formData.kode_pelanggaran}
                                             onChange={handleFormChange}
                                             required
-                                            placeholder="Misal: PEL-001"
+                                            placeholder="Kode Pelanggaran"
                                             className="w-full px-3 py-2 border border-neutral-200 rounded-lg text-sm bg-neutral-50 text-neutral-800 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all"
                                         />
                                     </div>
@@ -317,7 +317,7 @@ export function AdminJenisPelanggaran() {
                                             onChange={handleFormChange}
                                             required
                                             min="0"
-                                            placeholder="Jumlah poin (Misal: 10)"
+                                            placeholder="Jumlah Poin"
                                             className="w-full px-3 py-2 border border-neutral-200 rounded-lg text-sm bg-neutral-50 text-neutral-800 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all"
                                         />
                                     </div>
