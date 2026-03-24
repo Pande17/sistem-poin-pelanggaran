@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import AdminLayout from "@/layouts/AdminLayout";
-import { IconEdit, IconTrash, IconX, IconChevronDown, IconAlertCircle, IconInbox, IconLoader2, IconCheck, IconInfoCircle, IconTrashX } from "@tabler/icons-react";
+import { IconEdit, IconTrash, IconX, IconChevronDown, IconAlertCircle, IconInbox, IconLoader2, IconCheck, IconInfoCircle, IconTrashX, IconSearch, IconFilter, IconCalendar, IconArrowsSort } from "@tabler/icons-react";
 import { motion, AnimatePresence } from "motion/react";
 import { cn } from "@/lib/utils";
 
@@ -14,7 +14,7 @@ function CustomSelect({ value, onChange, options, placeholder, name }: { value: 
                 onClick={() => setOpen(!open)}
                 className="w-full px-3 py-2 border border-neutral-200 rounded-lg text-sm bg-white cursor-pointer flex justify-between items-center focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
             >
-                <span className={selected ? "text-neutral-800" : "text-neutral-400"}>
+                <span className={cn("truncate pr-2 block w-full", selected ? "text-neutral-800" : "text-neutral-400")}>
                     {selected ? selected.label : placeholder}
                 </span>
                 <IconChevronDown className={cn("h-4 w-4 text-neutral-400 transition-transform duration-200", open && "rotate-180")} />
@@ -53,6 +53,102 @@ function CustomSelect({ value, onChange, options, placeholder, name }: { value: 
     );
 }
 
+function DateRangeSelect({ 
+    startDate, 
+    endDate, 
+    onChange 
+}: { 
+    startDate: string, 
+    endDate: string, 
+    onChange: (start: string, end: string) => void 
+}) {
+    const [open, setOpen] = useState(false);
+    
+    // Derived formatted label
+    const formatDisplay = () => {
+        if (!startDate && !endDate) return "Semua Waktu";
+        
+        // Helper function for quick visual formatting (YYYY-MM-DD -> DD/MM/YY)
+        const formatShort = (dateStr: string) => {
+            if (!dateStr) return "";
+            const [y, m, d] = dateStr.split('-');
+            return `${d}/${m}/${y.slice(-2)}`;
+        };
+
+        if (startDate && !endDate) return `Mulai: ${formatShort(startDate)}`;
+        if (!startDate && endDate) return `Hingga: ${formatShort(endDate)}`;
+        if (startDate === endDate) return formatShort(startDate);
+        return `${formatShort(startDate)} - ${formatShort(endDate)}`;
+    };
+
+    return (
+        <div className="relative w-full">
+            <div
+                onClick={() => setOpen(!open)}
+                className="w-full px-3 py-2 border border-neutral-200 rounded-lg text-sm bg-white cursor-pointer flex justify-between items-center focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all hover:bg-neutral-50 shadow-sm"
+            >
+                <div className="flex items-center gap-2 truncate pr-2">
+                    <IconCalendar className="h-4 w-4 text-neutral-400 shrink-0" />
+                    <span className={cn("truncate font-medium", open || startDate || endDate ? "text-neutral-800" : "text-neutral-500 font-normal")}>
+                        {formatDisplay()}
+                    </span>
+                </div>
+                <IconChevronDown className={cn("h-4 w-4 text-neutral-400 transition-transform duration-200 shrink-0", open && "rotate-180")} />
+            </div>
+            <AnimatePresence>
+                {open && (
+                    <>
+                        <div className="fixed inset-0 z-40" onClick={() => setOpen(false)}></div>
+                        <motion.div
+                            initial={{ opacity: 0, y: -10, scale: 0.95 }}
+                            animate={{ opacity: 1, y: 0, scale: 1 }}
+                            exit={{ opacity: 0, y: -10, scale: 0.95 }}
+                            transition={{ duration: 0.2, ease: "easeOut" }}
+                            className="absolute z-50 w-[280px] mt-2 bg-white border border-neutral-100 rounded-xl shadow-xl p-4 left-0 sm:left-auto"
+                        >
+                            <div className="space-y-4">
+                                <div>
+                                    <label className="text-xs font-semibold text-neutral-500 mb-1.5 block uppercase tracking-wider">Dari Tanggal</label>
+                                    <input
+                                        type="date"
+                                        value={startDate}
+                                        onChange={(e) => onChange(e.target.value, endDate)}
+                                        className="w-full px-3 py-2 border border-neutral-200 rounded-lg text-sm bg-neutral-50 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all text-neutral-800 cursor-pointer"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="text-xs font-semibold text-neutral-500 mb-1.5 block uppercase tracking-wider">Sampai Tanggal</label>
+                                    <input
+                                        type="date"
+                                        value={endDate}
+                                        onChange={(e) => onChange(startDate, e.target.value)}
+                                        min={startDate}
+                                        className="w-full px-3 py-2 border border-neutral-200 rounded-lg text-sm bg-neutral-50 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all text-neutral-800 cursor-pointer"
+                                    />
+                                </div>
+                                <div className="pt-2 border-t border-neutral-100 flex gap-2">
+                                    <button
+                                        onClick={() => { onChange("", ""); setOpen(false); }}
+                                        className="flex-1 py-1.5 text-xs font-medium text-neutral-600 bg-neutral-100 hover:bg-neutral-200 rounded-md transition-colors"
+                                    >
+                                        Hapus Filter
+                                    </button>
+                                    <button
+                                        onClick={() => setOpen(false)}
+                                        className="flex-1 py-1.5 text-xs font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-md transition-colors shadow-sm"
+                                    >
+                                        Terapkan
+                                    </button>
+                                </div>
+                            </div>
+                        </motion.div>
+                    </>
+                )}
+            </AnimatePresence>
+        </div>
+    );
+}
+
 interface PelanggaranRecord {
     id: number;
     created_at: string;
@@ -69,6 +165,15 @@ export function AdminPelanggaran() {
     const [data, setData] = useState<PelanggaranRecord[]>([]);
     const [loading, setLoading] = useState<boolean>(true);
     const [error, setError] = useState<string | null>(null);
+
+    // Filters and Search State
+    const [searchQuery, setSearchQuery] = useState("");
+    const [filterKelas, setFilterKelas] = useState("");
+    const [filterJenis, setFilterJenis] = useState("");
+    const [filterStartDate, setFilterStartDate] = useState("");
+    const [filterEndDate, setFilterEndDate] = useState("");
+    const [sortOrder, setSortOrder] = useState("");
+
 
     // Modal state
     const [isModalOpen, setIsModalOpen] = useState(false);
@@ -284,8 +389,90 @@ export function AdminPelanggaran() {
                         + Tambah Pelanggaran
                     </button>
                 </div>
+                
+                <div className="p-4 border-b border-neutral-100 bg-neutral-50/50">
+                    <div className="flex flex-col lg:flex-row gap-4 justify-between items-start lg:items-center w-full">
+                        {/* Grup Filter (Kiri) */}
+                        <div className="flex flex-col sm:flex-row flex-wrap gap-3 w-full lg:w-auto">
+                            {/* Sort Tanggal */}
+                            <div className="relative w-full sm:w-[170px]">
+                                <IconArrowsSort className="h-4 w-4 absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400 z-10" />
+                                <div className="pl-7">
+                                    <CustomSelect
+                                        name="sortOrder"
+                                        value={sortOrder}
+                                        onChange={(e) => setSortOrder(e.target.value)}
+                                        placeholder="Urutkan"
+                                        options={[
+                                            { label: "Terbaru (Default)", value: "" },
+                                            { label: "Data Terlama", value: "oldest" }
+                                        ]}
+                                    />
+                                </div>
+                            </div>
+                            
+                            {/* Filter Rentang Tanggal */}
+                            <div className="w-full sm:w-[210px]">
+                                <DateRangeSelect
+                                    startDate={filterStartDate}
+                                    endDate={filterEndDate}
+                                    onChange={(start, end) => {
+                                        setFilterStartDate(start);
+                                        setFilterEndDate(end);
+                                    }}
+                                />
+                            </div>
 
-                <div className="overflow-x-auto">
+                            {/* Filter Kelas */}
+                            <div className="relative w-full sm:w-[150px]">
+                                <IconFilter className="h-4 w-4 absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400 z-10" />
+                                <div className="pl-7">
+                                    <CustomSelect
+                                        name="filterKelas"
+                                        value={filterKelas}
+                                        onChange={(e) => setFilterKelas(e.target.value)}
+                                        placeholder="Semua Kelas"
+                                        options={[
+                                            { label: "Semua Kelas", value: "" },
+                                            ...kelasOptions
+                                        ]}
+                                    />
+                                </div>
+                            </div>
+
+                            {/* Filter Jenis */}
+                            <div className="relative w-full sm:w-[220px]">
+                                <IconFilter className="h-4 w-4 absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400 z-10" />
+                                <div className="pl-7">
+                                    <CustomSelect
+                                        name="filterJenis"
+                                        value={filterJenis}
+                                        onChange={(e) => setFilterJenis(e.target.value)}
+                                        placeholder="Semua Pelanggaran"
+                                        options={[
+                                            { label: "Semua Pelanggaran", value: "" },
+                                            ...jenisOptions.map(j => ({ label: j.label.split(' - ')[0], value: j.value }))
+                                        ]}
+                                    />
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Grup Search (Kanan) */}
+                        <div className="relative w-full lg:max-w-xs group">
+                            <IconSearch className="h-4 w-4 absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400 group-focus-within:text-blue-500 transition-colors" />
+                            <input
+                                type="text"
+                                placeholder="Cari Siswa atau Pelanggaran..."
+                                value={searchQuery}
+                                onChange={(e) => setSearchQuery(e.target.value)}
+                                className="w-full pl-9 pr-4 py-2 text-sm border border-neutral-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all bg-white shadow-sm"
+                            />
+                        </div>
+                    </div>
+                </div>
+
+                <div className="overflow-x-auto min-h-[400px]">
                     <table className="w-full text-left border-collapse">
                         <thead>
                             <tr className="bg-neutral-50 text-neutral-500 text-sm border-b border-neutral-100">
@@ -317,7 +504,40 @@ export function AdminPelanggaran() {
                                         </div>
                                     </td>
                                 </tr>
-                            ) : data.length === 0 ? (
+                            ) : (() => {
+                                const filteredData = data.filter((item) => {
+                                    const matchSearch = item.nama_siswa.toLowerCase().includes(searchQuery.toLowerCase()) || 
+                                                      (item.keterangan && item.keterangan.toLowerCase().includes(searchQuery.toLowerCase())) ||
+                                                      item.nama_pelanggaran.toLowerCase().includes(searchQuery.toLowerCase());
+                                    const matchKelas = filterKelas ? item.kelas === filterKelas : true;
+                                    const matchJenis = filterJenis ? item.id_jenis_pelanggaran?.toString() === filterJenis : true;
+                                    
+                                    // Rentang Waktu (Date Range)
+                                    let matchTanggal = true;
+                                    if (item.created_at) {
+                                        const itemDate = item.created_at.slice(0, 10);
+                                        if (filterStartDate && filterEndDate) {
+                                            matchTanggal = itemDate >= filterStartDate && itemDate <= filterEndDate;
+                                        } else if (filterStartDate) {
+                                            matchTanggal = itemDate >= filterStartDate;
+                                        } else if (filterEndDate) {
+                                            matchTanggal = itemDate <= filterEndDate;
+                                        }
+                                    } else if (filterStartDate || filterEndDate) {
+                                        matchTanggal = false; // if it has no date but filter is active
+                                    }
+
+                                    return matchSearch && matchKelas && matchJenis && matchTanggal;
+                                }).sort((a, b) => {
+                                    if (sortOrder === "oldest") {
+                                        return new Date(a.created_at || "").getTime() - new Date(b.created_at || "").getTime();
+                                    } else {
+                                        return new Date(b.created_at || "").getTime() - new Date(a.created_at || "").getTime();
+                                    }
+                                });
+
+                                if (filteredData.length === 0) {
+                                    return (
                                 <tr>
                                     <td colSpan={7} className="px-6 py-16 text-center h-64 bg-neutral-50/50">
                                         <div className="flex flex-col items-center justify-center space-y-4">
@@ -333,8 +553,10 @@ export function AdminPelanggaran() {
                                         </div>
                                     </td>
                                 </tr>
-                            ) : (
-                                data.map((item, index) => (
+                                    );
+                                }
+                                
+                                return filteredData.map((item, index) => (
                                     <tr key={item.id} className="hover:bg-neutral-50 transition-colors">
                                         <td className="px-6 py-4 whitespace-nowrap">{index + 1}</td>
                                         <td className="px-6 py-4 whitespace-nowrap text-neutral-500">{item.created_at ? item.created_at.slice(0, 10) : '-'}</td>
@@ -359,8 +581,8 @@ export function AdminPelanggaran() {
                                             </button>
                                         </td>
                                     </tr>
-                                ))
-                            )}
+                                ));
+                            })()}
                         </tbody>
                     </table>
                 </div>
